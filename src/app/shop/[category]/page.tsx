@@ -5,15 +5,16 @@ import { getCategoryById, getProductsByCategory, categories } from "@/lib/catalo
 import { CategoryProductGrid } from "../components/CategoryProductGrid";
 
 type CategoryPageProps = {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 };
 
 export function generateStaticParams() {
   return categories.map((category) => ({ category: category.id }));
 }
 
-export function generateMetadata({ params }: CategoryPageProps): Metadata {
-  const category = getCategoryById(params.category);
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { category: categoryId } = await params;
+  const category = getCategoryById(categoryId);
   if (!category) {
     return { title: "Shop | Everon Global Trades LLC" };
   }
@@ -23,8 +24,9 @@ export function generateMetadata({ params }: CategoryPageProps): Metadata {
   };
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryById(params.category);
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { category: categoryId } = await params;
+  const category = getCategoryById(categoryId);
   if (!category) {
     notFound();
   }
