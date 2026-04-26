@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { StarRating } from "@/components/StarRating";
+
+const sessionKey = "everon-session-v1";
 
 const reviews = [
   {
@@ -31,13 +33,22 @@ const reviews = [
   },
 ];
 
+function subscribeToAuthChanges(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
+}
+
+function getAuthSnapshot() {
+  return window.localStorage.getItem(sessionKey) === "authenticated";
+}
+
+function getServerAuthSnapshot() {
+  return false;
+}
+
 export function ReviewCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    setIsAuthenticated(window.localStorage.getItem("everon-session-v1") === "authenticated");
-  }, []);
+  const isAuthenticated = useSyncExternalStore(subscribeToAuthChanges, getAuthSnapshot, getServerAuthSnapshot);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -57,7 +68,7 @@ export function ReviewCarousel() {
               <StarRating rating={review.rating} />
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Verified review</span>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-700">"{review.quote}"</p>
+            <p className="mt-4 text-sm leading-6 text-slate-700">&ldquo;{review.quote}&rdquo;</p>
             <p className="mt-4 text-sm font-semibold text-brand-navy">{review.name}</p>
             <p className="text-xs text-slate-500">{review.company}</p>
           </article>
