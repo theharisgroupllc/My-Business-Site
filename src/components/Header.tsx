@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { categories } from "@/lib/catalog";
 import { useCart } from "@/components/cart/CartContext";
 import { HeaderSearch } from "@/components/HeaderSearch";
 
 export function Header() {
   const { totalItems } = useCart();
+  const [isShopOpen, setIsShopOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -20,11 +22,11 @@ export function Header() {
           <Link href="/" className="text-slate-700 hover:text-brand-teal">
             Home
           </Link>
-          <details className="group relative">
+          <details className="group relative" open={isShopOpen} onToggle={(event) => setIsShopOpen(event.currentTarget.open)}>
             <summary className="cursor-pointer list-none text-slate-700 hover:text-brand-teal">Shop</summary>
             <div className="absolute left-0 mt-3 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg sm:grid-cols-2">
               {categories.map((category) => (
-                <Link key={category.id} href={`/shop/${category.id}`} className="rounded px-2 py-1 text-xs text-slate-700 hover:bg-slate-100">
+                <Link key={category.id} href={`/shop/${category.id}`} className="rounded px-2 py-1 text-xs text-slate-700 hover:bg-slate-100" onClick={() => setIsShopOpen(false)}>
                   {category.name}
                 </Link>
               ))}
