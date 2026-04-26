@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useCart } from "@/components/cart/CartContext";
 
+const assetBasePath = process.env.NODE_ENV === "production" ? "/My-Business-Site" : "";
+
 export default function CheckoutPage() {
   const { detailedItems, subtotal, clearCart } = useCart();
   const shipping = detailedItems.length > 0 ? 9.99 : 0;
@@ -72,9 +74,9 @@ export default function CheckoutPage() {
             <div className="flex justify-between text-base font-semibold text-brand-navy"><span>Total</span><span>${total}</span></div>
           </div>
           <div className="mt-5 flex items-center gap-2">
-            <Image src="/assets/payment-visa.svg" alt="Visa" width={72} height={24} />
-            <Image src="/assets/payment-mastercard.svg" alt="MasterCard" width={72} height={24} />
-            <Image src="/assets/payment-paypal.svg" alt="PayPal" width={72} height={24} />
+            <Image src={`${assetBasePath}/assets/payment-visa.svg`} alt="Visa" width={72} height={24} />
+            <Image src={`${assetBasePath}/assets/payment-mastercard.svg`} alt="MasterCard" width={72} height={24} />
+            <Image src={`${assetBasePath}/assets/payment-paypal.svg`} alt="PayPal" width={72} height={24} />
           </div>
         </aside>
       </div>

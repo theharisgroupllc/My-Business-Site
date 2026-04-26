@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+const assetBasePath = process.env.NODE_ENV === "production" ? "/My-Business-Site" : "";
+
 export function Footer() {
   return (
     <footer className="mt-20 bg-brand-navy text-white">
@@ -41,9 +43,9 @@ export function Footer() {
           <div className="mt-3 space-y-3 text-sm text-slate-300">
             <p className="rounded border border-teal-400/30 bg-teal-400/10 px-3 py-2">SSL Secured Checkout</p>
             <div className="flex items-center gap-2">
-              <Image src="/assets/payment-visa.svg" alt="Visa" width={72} height={24} />
-              <Image src="/assets/payment-mastercard.svg" alt="MasterCard" width={72} height={24} />
-              <Image src="/assets/payment-paypal.svg" alt="PayPal" width={72} height={24} />
+              <Image src={`${assetBasePath}/assets/payment-visa.svg`} alt="Visa" width={72} height={24} />
+              <Image src={`${assetBasePath}/assets/payment-mastercard.svg`} alt="MasterCard" width={72} height={24} />
+              <Image src={`${assetBasePath}/assets/payment-paypal.svg`} alt="PayPal" width={72} height={24} />
             </div>
             <p>Business registration and supplier verification available upon request.</p>
           </div>

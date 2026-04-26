@@ -4,6 +4,8 @@ import { SectionTitle } from "@/components/SectionTitle";
 import { ProductCard } from "@/components/ProductCard";
 import { categories, products } from "@/lib/catalog";
 
+const assetBasePath = process.env.NODE_ENV === "production" ? "/My-Business-Site" : "";
+
 const testimonials = [
   {
     name: "Morgan Lewis",
@@ -106,9 +108,9 @@ export default function HomePage() {
         <div className="rounded-lg bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">Payments Accepted</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Image src="/assets/payment-visa.svg" alt="Visa" width={72} height={24} />
-            <Image src="/assets/payment-mastercard.svg" alt="MasterCard" width={72} height={24} />
-            <Image src="/assets/payment-paypal.svg" alt="PayPal" width={72} height={24} />
+            <Image src={`${assetBasePath}/assets/payment-visa.svg`} alt="Visa" width={72} height={24} />
+            <Image src={`${assetBasePath}/assets/payment-mastercard.svg`} alt="MasterCard" width={72} height={24} />
+            <Image src={`${assetBasePath}/assets/payment-paypal.svg`} alt="PayPal" width={72} height={24} />
           </div>
           <p className="mt-2 text-xs text-slate-600">Business registration and supplier verification available.</p>
         </div>
