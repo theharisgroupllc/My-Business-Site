@@ -66,7 +66,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
       <section className="mt-14">
         <h2 className="text-2xl font-bold text-brand-navy">Related Products</h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {relatedProducts.map((item) => (
             <ProductCard key={item.id} product={item} />
           ))}

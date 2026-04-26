@@ -2,25 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { SectionTitle } from "@/components/SectionTitle";
 import { ProductCard } from "@/components/ProductCard";
+import { ReviewCarousel } from "@/components/ReviewCarousel";
 import { categories, products } from "@/lib/catalog";
-
-const testimonials = [
-  {
-    name: "Morgan Lewis",
-    company: "Independent Retail Buyer",
-    quote: "Everon Global Trades consistently delivers quality products with professional fulfillment and responsive support.",
-  },
-  {
-    name: "Jessica Tran",
-    company: "Home Goods Customer",
-    quote: "Reliable shipping, secure checkout, and products that match the descriptions. I trust them for recurring purchases.",
-  },
-  {
-    name: "Daniel Brooks",
-    company: "Small Business Owner",
-    quote: "Their multi-category sourcing helped us expand inventory confidently with dependable supplier-backed products.",
-  },
-];
 
 const bestSellers = products.slice(0, 8);
 
@@ -54,11 +37,11 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle eyebrow="Shop By Category" title="Featured Categories" subtitle="Explore professionally sourced products across our top retail segments." />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {categories.slice(0, 8).map((category) => (
-            <Link key={category.id} href={`/shop/${category.id}`} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md">
-              <h3 className="text-base font-semibold text-brand-navy">{category.name}</h3>
-              <p className="mt-2 text-sm text-slate-600">{category.description}</p>
+            <Link key={category.id} href={`/shop/${category.id}`} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md sm:p-5">
+              <h3 className="text-sm font-semibold leading-5 text-brand-navy sm:text-base">{category.name}</h3>
+              <p className="mt-2 text-xs leading-5 text-slate-600 sm:text-sm">{category.description}</p>
             </Link>
           ))}
         </div>
@@ -66,7 +49,7 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle eyebrow="Popular Picks" title="Best Selling Products" subtitle="Trusted products chosen by customers and retail buyers." />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {bestSellers.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -86,15 +69,7 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle title="Trusted by Thousands of Customers" subtitle="What buyers and partners say about their experience with Everon Global Trades LLC." />
-        <div className="grid gap-4 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <article key={testimonial.name} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-slate-700">"{testimonial.quote}"</p>
-              <p className="mt-4 text-sm font-semibold text-brand-navy">{testimonial.name}</p>
-              <p className="text-xs text-slate-500">{testimonial.company}</p>
-            </article>
-          ))}
-        </div>
+        <ReviewCarousel />
       </section>
 
       <section className="mt-10 grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 md:grid-cols-2">
