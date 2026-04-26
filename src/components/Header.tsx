@@ -12,7 +12,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4 md:px-6">
         <Link href="/" className="inline-flex items-center">
-          <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={320} height={72} className="h-14 w-auto" priority />
+          <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={280} height={46} className="h-10 w-auto" priority />
         </Link>
 
         <nav className="flex w-full flex-wrap items-center gap-4 text-sm font-medium md:w-auto md:gap-5">
