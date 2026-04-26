@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   basePath: isProd ? '/My-Business-Site' : '',
   assetPrefix: isProd ? '/My-Business-Site' : '',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
