@@ -224,15 +224,24 @@ export function AdminDashboard() {
         ))}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-brand-navy">Products & Inventory</h2>
             <span className="text-xs text-slate-500">Add, price, stock, archive</span>
           </div>
-          <form onSubmit={addProduct} className="mt-4 grid gap-3 md:grid-cols-6">
-            <input name="name" required placeholder="Product name" className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2" />
-            <select name="categoryId" required className="max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <form onSubmit={addProduct} className="mt-4 grid gap-3 md:grid-cols-12">
+            <input
+              name="name"
+              required
+              placeholder="Product name"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
+            />
+            <select
+              name="categoryId"
+              required
+              className="max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+            >
               <option value="">Select category</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -240,29 +249,34 @@ export function AdminDashboard() {
                 </option>
               ))}
             </select>
-            <input name="price" required type="number" min="0" step="0.01" placeholder="Price" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <input name="inventory" required type="number" min="0" placeholder="Stock" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <input name="imageUrl" placeholder="Image URL (optional)" className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2" />
-            <textarea name="description" placeholder="Short product description" rows={3} className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3" />
-            <div className="rounded-md border border-slate-200 bg-slate-50 p-3 md:col-span-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category quick picker</p>
-              <div className="mt-2 flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => {
-                      const form = document.querySelector("form[data-product-form='true']") as HTMLFormElement | null;
-                      const select = form?.elements.namedItem("categoryId") as HTMLSelectElement | null;
-                      if (select) select.value = category.id;
-                    }}
-                    className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:border-brand-teal hover:text-brand-teal"
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <input
+              name="price"
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Price"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-1"
+            />
+            <input
+              name="inventory"
+              required
+              type="number"
+              min="0"
+              placeholder="Stock"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2"
+            />
+            <input
+              name="imageUrl"
+              placeholder="Image URL (optional)"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+            />
+            <textarea
+              name="description"
+              placeholder="Short product description"
+              rows={3}
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-8"
+            />
             <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-3">
               Upload product image
               <input
@@ -283,11 +297,11 @@ export function AdminDashboard() {
               />
             </label>
             {imagePreview && (
-              <div className="rounded-lg border border-slate-200 p-2 md:col-span-6">
+              <div className="rounded-lg border border-slate-200 p-2 md:col-span-12">
                 <img src={imagePreview} alt="Product preview" className="h-32 w-full rounded-md object-cover" />
               </div>
             )}
-            <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white md:col-span-6">Add Product Live</button>
+            <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white md:col-span-12">Add Product Live</button>
           </form>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
