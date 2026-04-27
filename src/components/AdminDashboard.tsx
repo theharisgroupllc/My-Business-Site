@@ -224,7 +224,7 @@ export function AdminDashboard() {
         ))}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-brand-navy">Products & Inventory</h2>
@@ -235,51 +235,49 @@ export function AdminDashboard() {
               name="name"
               required
               placeholder="Product name"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
             />
-            <div className="flex min-w-0 items-stretch gap-2 md:col-span-5">
-              <select
-                name="categoryId"
-                required
-                className="min-w-0 max-h-64 flex-1 rounded-md border border-slate-300 px-2 py-2 text-sm"
-              >
-                <option value="">Select category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="price"
-                required
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Price"
-                className="w-[4.5rem] max-w-[28%] shrink-0 rounded-md border border-slate-300 px-2 py-2 text-sm tabular-nums"
-              />
-              <input
-                name="inventory"
-                required
-                type="number"
-                min="0"
-                placeholder="Stock"
-                className="w-[4.5rem] max-w-[28%] shrink-0 rounded-md border border-slate-300 px-2 py-2 text-sm tabular-nums"
-              />
-            </div>
+            <select
+              name="categoryId"
+              required
+              className="min-w-0 max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+            >
+              <option value="">Select category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <input
+              name="price"
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Price"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums md:col-span-2"
+            />
+            <input
+              name="inventory"
+              required
+              type="number"
+              min="0"
+              placeholder="Stock"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums md:col-span-2"
+            />
             <input
               name="imageUrl"
               placeholder="Image URL (optional)"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-6"
             />
             <textarea
               name="description"
               placeholder="Short product description"
               rows={3}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-6"
             />
-            <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-5">
+            <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-6">
               Upload product image
               <input
                 name="image"
@@ -371,9 +369,9 @@ export function AdminDashboard() {
               name="code"
               required
               placeholder="Discount code (e.g. SAVE10)"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-6"
             />
-            <select name="type" className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4">
+            <select name="type" className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3">
               <option value="percent">Percent</option>
               <option value="fixed">Fixed</option>
             </select>
@@ -384,7 +382,7 @@ export function AdminDashboard() {
               min="0"
               step="0.01"
               placeholder="Value"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums md:col-span-3"
             />
             <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white md:col-span-12">Create Discount</button>
           </form>
