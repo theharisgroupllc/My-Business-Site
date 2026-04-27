@@ -237,35 +237,37 @@ export function AdminDashboard() {
               placeholder="Product name"
               className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
             />
-            <select
-              name="categoryId"
-              required
-              className="max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            <input
-              name="price"
-              required
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Price"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-1"
-            />
-            <input
-              name="inventory"
-              required
-              type="number"
-              min="0"
-              placeholder="Stock"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-1"
-            />
+            <div className="flex min-w-0 items-stretch gap-2 md:col-span-5">
+              <select
+                name="categoryId"
+                required
+                className="min-w-0 max-h-64 flex-1 rounded-md border border-slate-300 px-2 py-2 text-sm"
+              >
+                <option value="">Select category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="price"
+                required
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Price"
+                className="w-[4.5rem] max-w-[28%] shrink-0 rounded-md border border-slate-300 px-2 py-2 text-sm tabular-nums"
+              />
+              <input
+                name="inventory"
+                required
+                type="number"
+                min="0"
+                placeholder="Stock"
+                className="w-[4.5rem] max-w-[28%] shrink-0 rounded-md border border-slate-300 px-2 py-2 text-sm tabular-nums"
+              />
+            </div>
             <input
               name="imageUrl"
               placeholder="Image URL (optional)"
