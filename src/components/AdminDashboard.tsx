@@ -224,7 +224,7 @@ export function AdminDashboard() {
         ))}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-brand-navy">Products & Inventory</h2>
@@ -364,20 +364,33 @@ export function AdminDashboard() {
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-brand-navy">Discount Manager</h2>
-          <form onSubmit={addDiscount} className="mt-4 grid gap-3 sm:grid-cols-3">
-            <input name="code" required placeholder="SAVE10" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <select name="type" className="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <form onSubmit={addDiscount} className="mt-4 grid gap-3 md:grid-cols-12">
+            <input
+              name="code"
+              required
+              placeholder="Discount code (e.g. SAVE10)"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
+            />
+            <select name="type" className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4">
               <option value="percent">Percent</option>
               <option value="fixed">Fixed</option>
             </select>
-            <input name="value" required type="number" min="0" step="0.01" placeholder="Value" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white sm:col-span-3">Create Discount</button>
+            <input
+              name="value"
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Value"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
+            />
+            <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white md:col-span-12">Create Discount</button>
           </form>
           <div className="mt-4 space-y-2">
             {data.discounts.map((discount) => (
-              <div key={discount.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+              <div key={discount.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
                 <span className="font-semibold text-brand-navy">{discount.code}</span>
-                <span>{discount.discount_type ?? discount.type} - {discount.value}</span>
+                <span className="text-slate-700">{discount.discount_type ?? discount.type} - {discount.value}</span>
               </div>
             ))}
           </div>
