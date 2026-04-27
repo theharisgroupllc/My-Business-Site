@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS products_admin (
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'archived')),
   description TEXT,
   image_seed TEXT,
+  image_data_url TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -191,6 +191,16 @@ async function handleOrders(request: Request, env: Env) {
   return json({ id, paymentStatus: "pending_payment" }, { status: 201 });
 }
 
+async function handleProducts(env: Env) {
+  if (!env.DB) return json({ products: [], database: false });
+  const { results } = await env.DB
+    .prepare(
+      "SELECT id, slug, name, category_id, price, inventory, description, image_url FROM products_admin WHERE status = 'active' ORDER BY updated_at DESC LIMIT 300",
+    )
+    .all();
+  return json({ products: results ?? [], database: true });
+}
+
 function handleCheckoutSession() {
   return json(
     {
@@ -231,6 +241,8 @@ async function handleAdmin(request: Request, env: Env) {
       const id = sanitizeText(body.id, 120) || crypto.randomUUID();
       const name = sanitizeText(body.name, 180);
       const categoryId = sanitizeText(body.categoryId, 120);
+      const description = sanitizeText(body.description, 1200);
+      const imageUrl = sanitizeText(body.imageUrl, 300000);
       const price = toNumber(body.price);
       const inventory = Math.max(0, Math.floor(toNumber(body.inventory)));
       if (!name || !categoryId || price <= 0) {
@@ -238,12 +250,18 @@ async function handleAdmin(request: Request, env: Env) {
       }
       await db
         .prepare(
-          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, updated_at = datetime('now')",
+          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, description, image_url, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, description = excluded.description, image_url = excluded.image_url, updated_at = datetime('now')",
         )
-        .bind(id, id, name, categoryId, price, inventory)
+        .bind(id, id, name, categoryId, price, inventory, description || null, imageUrl || null)
         .run();
       return json({ id, message: "Product saved." }, { status: 201 });
     }
+  }
+
+  if (path.startsWith("/api/admin/products/") && path.endsWith("/image") && request.method === "DELETE") {
+    const id = decodeURIComponent(path.split("/").at(-2) ?? "");
+    await db.prepare("UPDATE products_admin SET image_url = NULL, updated_at = datetime('now') WHERE id = ?").bind(id).run();
+    return json({ message: "Product image removed." });
   }
 
   if (path.startsWith("/api/admin/products/") && request.method === "DELETE") {
@@ -322,6 +340,7 @@ async function handleApi(request: Request, env: Env) {
       return json({ ok: true, database: Boolean(env.DB) });
     }
     if (url.pathname.startsWith("/api/admin/")) return await handleAdmin(request, env);
+    if (url.pathname === "/api/products" && request.method === "GET") return await handleProducts(env);
     if (url.pathname === "/api/reviews") return await handleReviews(request, env);
     if (url.pathname === "/api/contact" && request.method === "POST") return await handleContact(request, env);
     if (url.pathname === "/api/newsletter" && request.method === "POST") return await handleNewsletter(request, env);

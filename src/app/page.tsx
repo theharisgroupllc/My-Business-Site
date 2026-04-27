@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SectionTitle } from "@/components/SectionTitle";
 import { ProductCard } from "@/components/ProductCard";
 import { ReviewCarousel } from "@/components/ReviewCarousel";
+import { LiveProductGrid } from "@/components/LiveProductGrid";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { categories, products } from "@/lib/catalog";
 
@@ -55,6 +56,7 @@ export default function HomePage() {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
+        <LiveProductGrid className="mt-3" limit={8} />
       </section>
 
       <section className="mt-14 rounded-2xl bg-slate-50 p-8">

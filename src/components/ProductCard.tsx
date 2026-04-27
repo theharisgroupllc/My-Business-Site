@@ -13,7 +13,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/product/${product.slug}`} className="block">
         <Image
-          src={`https://picsum.photos/seed/${product.imageSeed}/500/500`}
+          src={product.imageUrl ?? `https://picsum.photos/seed/${product.imageSeed}/500/500`}
           alt={product.name}
           width={500}
           height={500}

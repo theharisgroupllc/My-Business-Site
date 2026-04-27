@@ -1,14 +1,17 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { categories } from "@/lib/catalog";
 
 type ProductRow = {
   id: string;
+  slug?: string;
   name: string;
   category_id: string;
   price: number;
   inventory: number;
   status: string;
+  image_url?: string | null;
 };
 
 type OrderRow = {
@@ -33,9 +36,11 @@ type ReviewRow = {
 type DiscountRow = {
   id: string;
   code: string;
-  type: string;
+  discount_type?: string;
+  type?: string;
   value: number;
-  active: number;
+  status?: string;
+  active?: number;
 };
 
 type AdminData = {
@@ -69,8 +74,10 @@ export function AdminDashboard() {
   const [data, setData] = useState<AdminData>(emptyData);
   const [message, setMessage] = useState("Enter your admin token to load secure dashboard data.");
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
 
   const headers = useMemo(() => ({ "Content-Type": "application/json", "x-admin-token": token }), [token]);
+  const requestHeaders = useMemo(() => ({ "x-admin-token": token }), [token]);
 
   const loadData = async () => {
     if (!token) {
@@ -101,19 +108,36 @@ export function AdminDashboard() {
     void loadData();
   };
 
+  const imageToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Unable to read image."));
+      reader.readAsDataURL(file);
+    });
+
   const addProduct = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const imageFile = form.get("image");
+    if (imageFile instanceof File && imageFile.size > 750_000) {
+      setMessage("Please upload an image under 750 KB for fast mobile performance.");
+      return;
+    }
+    const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await imageToDataUrl(imageFile) : String(form.get("imageUrl") ?? "");
     const body = {
       name: String(form.get("name") ?? ""),
       categoryId: String(form.get("categoryId") ?? ""),
       price: Number(form.get("price")),
       inventory: Number(form.get("inventory")),
+      description: String(form.get("description") ?? ""),
+      imageUrl,
     };
     const response = await fetch("/api/admin/products", { method: "POST", headers, body: JSON.stringify(body) });
     setMessage(response.ok ? "Product saved." : "Unable to save product.");
     if (response.ok) {
       event.currentTarget.reset();
+      setImagePreview("");
       await loadData();
     }
   };
@@ -143,6 +167,12 @@ export function AdminDashboard() {
   const deleteProduct = async (id: string) => {
     const response = await fetch(`/api/admin/products/${id}`, { method: "DELETE", headers });
     setMessage(response.ok ? "Product archived." : "Unable to archive product.");
+    if (response.ok) await loadData();
+  };
+
+  const removeProductImage = async (id: string) => {
+    const response = await fetch(`/api/admin/products/${id}/image`, { method: "DELETE", headers });
+    setMessage(response.ok ? "Product image removed." : "Unable to remove product image.");
     if (response.ok) await loadData();
   };
 
@@ -200,27 +230,89 @@ export function AdminDashboard() {
             <h2 className="text-lg font-semibold text-brand-navy">Products & Inventory</h2>
             <span className="text-xs text-slate-500">Add, price, stock, archive</span>
           </div>
-          <form onSubmit={addProduct} className="mt-4 grid gap-3 md:grid-cols-5">
+          <form onSubmit={addProduct} className="mt-4 grid gap-3 md:grid-cols-6">
             <input name="name" required placeholder="Product name" className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2" />
-            <input name="categoryId" required placeholder="Category" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+            <select name="categoryId" required className="max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm">
+              <option value="">Select category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
             <input name="price" required type="number" min="0" step="0.01" placeholder="Price" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
             <input name="inventory" required type="number" min="0" placeholder="Stock" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white md:col-span-5">Add Product</button>
+            <input name="imageUrl" placeholder="Image URL (optional)" className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2" />
+            <textarea name="description" placeholder="Short product description" rows={3} className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3" />
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3 md:col-span-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category quick picker</p>
+              <div className="mt-2 flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => {
+                      const form = document.querySelector("form[data-product-form='true']") as HTMLFormElement | null;
+                      const select = form?.elements.namedItem("categoryId") as HTMLSelectElement | null;
+                      if (select) select.value = category.id;
+                    }}
+                    className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:border-brand-teal hover:text-brand-teal"
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-3">
+              Upload product image
+              <input
+                name="image"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="mt-2 block w-full text-xs"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) {
+                    setImagePreview("");
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => setImagePreview(String(reader.result));
+                  reader.readAsDataURL(file);
+                }}
+              />
+            </label>
+            {imagePreview && (
+              <div className="rounded-lg border border-slate-200 p-2 md:col-span-6">
+                <img src={imagePreview} alt="Product preview" className="h-32 w-full rounded-md object-cover" />
+              </div>
+            )}
+            <button className="rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white md:col-span-6">Add Product Live</button>
           </form>
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[620px] text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                <tr><th className="p-2">Name</th><th>Category</th><th>Price</th><th>Inventory</th><th>Status</th><th>Action</th></tr>
+                <tr><th className="p-2">Image</th><th>Name</th><th>Category</th><th>Price</th><th>Inventory</th><th>Status</th><th>Action</th></tr>
               </thead>
               <tbody>
                 {data.products.map((product) => (
                   <tr key={product.id} className="border-t border-slate-100">
-                    <td className="p-2 font-medium text-slate-800">{product.name}</td>
+                    <td className="p-2">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="h-12 w-16 rounded object-cover" />
+                      ) : (
+                        <span className="text-xs text-slate-400">No image</span>
+                      )}
+                    </td>
+                    <td className="font-medium text-slate-800">{product.name}</td>
                     <td>{product.category_id}</td>
                     <td>{currency.format(product.price)}</td>
                     <td>{product.inventory}</td>
                     <td>{product.status}</td>
-                    <td><button onClick={() => deleteProduct(product.id)} className="text-xs font-semibold text-red-600">Archive</button></td>
+                    <td className="space-x-3">
+                      <button onClick={() => removeProductImage(product.id)} className="text-xs font-semibold text-amber-600">Remove image</button>
+                      <button onClick={() => deleteProduct(product.id)} className="text-xs font-semibold text-red-600">Archive</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -243,7 +335,7 @@ export function AdminDashboard() {
             {data.discounts.map((discount) => (
               <div key={discount.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
                 <span className="font-semibold text-brand-navy">{discount.code}</span>
-                <span>{discount.type} - {discount.value}</span>
+                <span>{discount.discount_type ?? discount.type} - {discount.value}</span>
               </div>
             ))}
           </div>

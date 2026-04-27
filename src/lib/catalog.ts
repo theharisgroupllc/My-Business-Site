@@ -16,6 +16,8 @@ export type Product = {
   description: string;
   specifications: string[];
   imageSeed: string;
+  imageUrl?: string;
+  isLive?: boolean;
 };
 
 export const categories: Category[] = [

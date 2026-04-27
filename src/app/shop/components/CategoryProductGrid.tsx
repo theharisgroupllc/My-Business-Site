@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Product, categories as allCategories, products as allProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
+import { LiveProductGrid } from "@/components/LiveProductGrid";
 import { CategoryFilters } from "./CategoryFilters";
 
 type CategoryProductGridProps = {
@@ -53,6 +54,7 @@ export function CategoryProductGrid({ products, categoryId }: CategoryProductGri
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
+        <LiveProductGrid categoryId={selectedCategory} />
       </div>
     </div>
   );
