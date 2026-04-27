@@ -74,7 +74,7 @@ async function handleReviews(request: Request, env: Env) {
     const db = env.DB;
     const { results } = await db
       .prepare(
-        "SELECT id, product_id, customer_name, rating, quote, status, created_at FROM reviews WHERE status = 'approved' ORDER BY created_at DESC LIMIT 50",
+        "SELECT id, product_id, customer_name, 'Verified Customer' AS company, rating, body AS quote, status, created_at FROM reviews WHERE status = 'approved' ORDER BY created_at DESC LIMIT 50",
       )
       .all();
     return json({ reviews: results ?? [] });
@@ -102,7 +102,7 @@ async function handleReviews(request: Request, env: Env) {
     const id = crypto.randomUUID();
     await db
       .prepare(
-        "INSERT INTO reviews (id, product_id, customer_name, rating, quote, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', datetime('now'))",
+        "INSERT INTO reviews (id, product_id, customer_name, rating, body, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', datetime('now'))",
       )
       .bind(id, productId || null, customerName, rating, quote)
       .run();
@@ -130,7 +130,7 @@ async function handleContact(request: Request, env: Env) {
   const id = crypto.randomUUID();
   await db
     .prepare(
-      "INSERT INTO contact_messages (id, full_name, email, phone, message, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
+      "INSERT INTO contact_messages (id, name, email, phone, message, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
     )
     .bind(id, fullName, email, phone || null, message)
     .run();
@@ -158,7 +158,7 @@ async function handleOrders(request: Request, env: Env) {
   if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
 
   const customerEmail = sanitizeText(body.customerEmail, 180);
-  const customerName = sanitizeText(body.customerName, 160);
+  const customerName = sanitizeText(body.customerName, 160) || "Guest Customer";
   const items = Array.isArray(body.items) ? body.items : [];
   const total = Number(body.total);
 
@@ -169,9 +169,9 @@ async function handleOrders(request: Request, env: Env) {
   const id = crypto.randomUUID();
   await db
     .prepare(
-      "INSERT INTO orders (id, customer_email, customer_name, items_json, total, payment_status, created_at) VALUES (?, ?, ?, ?, ?, 'pending_payment', datetime('now'))",
+      "INSERT INTO orders (id, customer_email, customer_name, items_json, shipping_json, total, status, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending_payment', 'not_configured', datetime('now'))",
     )
-    .bind(id, customerEmail, customerName || null, JSON.stringify(items).slice(0, 8000), total)
+    .bind(id, customerEmail, customerName, JSON.stringify(items).slice(0, 8000), "{}", total)
     .run();
 
   return json({ id, paymentStatus: "pending_payment" }, { status: 201 });
