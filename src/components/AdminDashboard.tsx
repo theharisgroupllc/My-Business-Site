@@ -224,7 +224,7 @@ export function AdminDashboard() {
         ))}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-brand-navy">Products & Inventory</h2>
@@ -235,7 +235,7 @@ export function AdminDashboard() {
               name="name"
               required
               placeholder="Product name"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
             />
             <select
               name="categoryId"
@@ -256,7 +256,7 @@ export function AdminDashboard() {
               min="0"
               step="0.01"
               placeholder="Price"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-1"
             />
             <input
               name="inventory"
@@ -264,20 +264,20 @@ export function AdminDashboard() {
               type="number"
               min="0"
               placeholder="Stock"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-1"
             />
             <input
               name="imageUrl"
               placeholder="Image URL (optional)"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-7"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
             />
             <textarea
               name="description"
               placeholder="Short product description"
               rows={3}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-7"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
             />
-            <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-3">
+            <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-5">
               Upload product image
               <input
                 name="image"
