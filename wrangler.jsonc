@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "everon-global-trades",
   "account_id": "97476682ed9b614c3464180fdc393ad9",
+  "main": "src/worker.ts",
   "compatibility_date": "2026-04-26",
   "workers_dev": true,
   "preview_urls": true,
@@ -17,6 +18,7 @@
   ],
   "assets": {
     "directory": "./out",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   }
 }

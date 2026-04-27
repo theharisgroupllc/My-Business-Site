@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 
 export default function CheckoutPage() {
   const { detailedItems, subtotal, clearCart } = useCart();
+  const [status, setStatus] = useState("");
   const shipping = detailedItems.length > 0 ? 9.99 : 0;
   const tax = Number((subtotal * 0.07).toFixed(2));
   const total = Number((subtotal + shipping + tax).toFixed(2));
@@ -15,17 +17,63 @@ export default function CheckoutPage() {
       <p className="mt-2 text-sm text-slate-600">SSL encrypted checkout powered by trusted payment partners.</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-        <form className="space-y-6 rounded-xl border border-slate-200 p-6">
+        <form
+          className="space-y-6 rounded-xl border border-slate-200 p-6"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (detailedItems.length === 0) {
+              setStatus("Your cart is empty.");
+              return;
+            }
+            const formData = new FormData(event.currentTarget);
+            setStatus("Creating secure order record...");
+            try {
+              const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  customer: {
+                    firstName: formData.get("firstName"),
+                    lastName: formData.get("lastName"),
+                    address: formData.get("address"),
+                    city: formData.get("city"),
+                    state: formData.get("state"),
+                    postalCode: formData.get("postalCode"),
+                    phone: formData.get("phone"),
+                  },
+                  items: detailedItems.map((item) => ({
+                    productId: item.product.id,
+                    name: item.product.name,
+                    quantity: item.quantity,
+                    price: item.product.price,
+                    lineTotal: item.lineTotal,
+                  })),
+                  subtotal,
+                  shipping,
+                  tax,
+                  total,
+                }),
+              });
+              if (!response.ok) {
+                throw new Error("Order API unavailable");
+              }
+              clearCart();
+              setStatus("Order record created. Live card payments will activate after Stripe or PayPal credentials are connected.");
+            } catch {
+              setStatus("Order backend is being prepared. No payment was charged.");
+            }
+          }}
+        >
           <section>
             <h2 className="text-lg font-semibold text-brand-navy">Shipping Details</h2>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="First name" />
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Last name" />
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" placeholder="Street address" />
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="City" />
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="State" />
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="ZIP code" />
-              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Phone number" />
+              <input name="firstName" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="First name" required />
+              <input name="lastName" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Last name" required />
+              <input name="address" className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" placeholder="Street address" required />
+              <input name="city" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="City" required />
+              <input name="state" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="State" required />
+              <input name="postalCode" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="ZIP code" required />
+              <input name="phone" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Phone number" required />
             </div>
           </section>
 
@@ -39,18 +87,10 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <button
-            type="button"
-            className="rounded-md bg-brand-navy px-6 py-3 text-sm font-semibold text-white hover:bg-brand-slate"
-            onClick={() => {
-              if (detailedItems.length > 0) {
-                clearCart();
-                window.alert("Order placed successfully. Thank you for shopping with Everon Global Trades LLC.");
-              }
-            }}
-          >
+          <button type="submit" className="rounded-md bg-brand-navy px-6 py-3 text-sm font-semibold text-white hover:bg-brand-slate">
             Place Order
           </button>
+          {status && <p className="text-sm text-slate-600">{status}</p>}
         </form>
 
         <aside className="h-fit rounded-xl border border-slate-200 p-5">

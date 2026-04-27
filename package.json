@@ -6,6 +6,7 @@
     "dev": "node ./node_modules/next/dist/bin/next dev",
     "build": "node ./node_modules/next/dist/bin/next build",
     "deploy:cloudflare": "npm run build && wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply everon-global-trades-db --remote",
     "preview:cloudflare": "npm run build && wrangler dev",
     "start": "node ./node_modules/next/dist/bin/next start",
     "lint": "node ./node_modules/next/dist/bin/next lint"
@@ -16,6 +17,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260426.1",
     "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
