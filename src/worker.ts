@@ -1,6 +1,7 @@
 type Env = {
   ASSETS: Fetcher;
   DB?: D1Database;
+  ADMIN_TOKEN?: string;
 };
 
 type ApiResponse = Record<string, unknown> | Array<Record<string, unknown>>;
@@ -64,6 +65,19 @@ const requireDb = (env: Env) => {
     throw new Error("D1 database is not bound yet.");
   }
   return env.DB;
+};
+
+const requireAdmin = (request: Request, env: Env) => {
+  const token = request.headers.get("x-admin-token") ?? "";
+  if (!env.ADMIN_TOKEN || token !== env.ADMIN_TOKEN) {
+    return false;
+  }
+  return true;
+};
+
+const toNumber = (value: unknown, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 };
 
 async function handleReviews(request: Request, env: Env) {
@@ -187,6 +201,119 @@ function handleCheckoutSession() {
   );
 }
 
+async function handleAdmin(request: Request, env: Env) {
+  if (!requireAdmin(request, env)) {
+    return json({ error: "Admin authentication required." }, { status: 401 });
+  }
+  const db = requireDb(env);
+  const url = new URL(request.url);
+  const path = url.pathname;
+
+  if (path === "/api/admin/summary") {
+    const [orders, pendingReviews, contacts, subscribers, products] = await Promise.all([
+      db.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS total FROM orders").first(),
+      db.prepare("SELECT COUNT(*) AS count FROM reviews WHERE status = 'pending'").first(),
+      db.prepare("SELECT COUNT(*) AS count FROM contact_messages WHERE status = 'new'").first(),
+      db.prepare("SELECT COUNT(*) AS count FROM newsletter_subscribers").first(),
+      db.prepare("SELECT COUNT(*) AS count FROM products_admin").first(),
+    ]);
+    return json({ orders, pendingReviews, contacts, subscribers, products });
+  }
+
+  if (path === "/api/admin/products") {
+    if (request.method === "GET") {
+      const { results } = await db.prepare("SELECT * FROM products_admin ORDER BY updated_at DESC LIMIT 200").all();
+      return json({ products: results ?? [] });
+    }
+    if (request.method === "POST") {
+      const body = await getBody(request);
+      if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
+      const id = sanitizeText(body.id, 120) || crypto.randomUUID();
+      const name = sanitizeText(body.name, 180);
+      const categoryId = sanitizeText(body.categoryId, 120);
+      const price = toNumber(body.price);
+      const inventory = Math.max(0, Math.floor(toNumber(body.inventory)));
+      if (!name || !categoryId || price <= 0) {
+        return json({ error: "Product name, category, and price are required." }, { status: 400 });
+      }
+      await db
+        .prepare(
+          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, updated_at = datetime('now')",
+        )
+        .bind(id, id, name, categoryId, price, inventory)
+        .run();
+      return json({ id, message: "Product saved." }, { status: 201 });
+    }
+  }
+
+  if (path.startsWith("/api/admin/products/") && request.method === "DELETE") {
+    const id = decodeURIComponent(path.split("/").pop() ?? "");
+    await db.prepare("UPDATE products_admin SET status = 'archived', updated_at = datetime('now') WHERE id = ?").bind(id).run();
+    return json({ message: "Product archived." });
+  }
+
+  if (path === "/api/admin/orders") {
+    const { results } = await db.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 200").all();
+    return json({ orders: results ?? [] });
+  }
+
+  if (path === "/api/admin/customers") {
+    const { results } = await db
+      .prepare(
+        "SELECT customer_email, MAX(customer_name) AS customer_name, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS lifetime_value, MAX(created_at) AS last_order_at FROM orders GROUP BY customer_email ORDER BY last_order_at DESC LIMIT 200",
+      )
+      .all();
+    return json({ customers: results ?? [] });
+  }
+
+  if (path === "/api/admin/reviews") {
+    const { results } = await db.prepare("SELECT * FROM reviews ORDER BY created_at DESC LIMIT 200").all();
+    return json({ reviews: results ?? [] });
+  }
+
+  if (path.startsWith("/api/admin/reviews/") && request.method === "PATCH") {
+    const id = decodeURIComponent(path.split("/").at(-2) ?? "");
+    const action = path.split("/").pop();
+    const status = action === "approve" ? "approved" : action === "reject" ? "rejected" : "";
+    if (!id || !status) return json({ error: "Invalid review action." }, { status: 400 });
+    await db.prepare("UPDATE reviews SET status = ? WHERE id = ?").bind(status, id).run();
+    return json({ id, status });
+  }
+
+  if (path === "/api/admin/discounts") {
+    if (request.method === "GET") {
+      const { results } = await db.prepare("SELECT * FROM discounts ORDER BY updated_at DESC LIMIT 100").all();
+      return json({ discounts: results ?? [] });
+    }
+    if (request.method === "POST") {
+      const body = await getBody(request);
+      if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
+      const code = sanitizeText(body.code, 40).toUpperCase();
+      const type = sanitizeText(body.type, 20) || "percent";
+      const value = toNumber(body.value);
+      if (!code || value <= 0) return json({ error: "Discount code and value are required." }, { status: 400 });
+      await db
+        .prepare(
+          "INSERT INTO discounts (id, code, discount_type, value, status, updated_at) VALUES (?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(code) DO UPDATE SET discount_type = excluded.discount_type, value = excluded.value, status = 'active', updated_at = datetime('now')",
+        )
+        .bind(code, code, type, value)
+        .run();
+      return json({ code, message: "Discount saved." }, { status: 201 });
+    }
+  }
+
+  if (path === "/api/admin/reports") {
+    const { results } = await db
+      .prepare(
+        "SELECT date(created_at) AS day, COUNT(*) AS orders, COALESCE(SUM(total), 0) AS revenue FROM orders GROUP BY date(created_at) ORDER BY day DESC LIMIT 30",
+      )
+      .all();
+    return json({ dailySales: results ?? [] });
+  }
+
+  return json({ error: "Admin endpoint not found." }, { status: 404 });
+}
+
 async function handleApi(request: Request, env: Env) {
   const url = new URL(request.url);
 
@@ -194,10 +321,11 @@ async function handleApi(request: Request, env: Env) {
     if (url.pathname === "/api/health") {
       return json({ ok: true, database: Boolean(env.DB) });
     }
-    if (url.pathname === "/api/reviews") return handleReviews(request, env);
-    if (url.pathname === "/api/contact" && request.method === "POST") return handleContact(request, env);
-    if (url.pathname === "/api/newsletter" && request.method === "POST") return handleNewsletter(request, env);
-    if (url.pathname === "/api/orders" && request.method === "POST") return handleOrders(request, env);
+    if (url.pathname.startsWith("/api/admin/")) return await handleAdmin(request, env);
+    if (url.pathname === "/api/reviews") return await handleReviews(request, env);
+    if (url.pathname === "/api/contact" && request.method === "POST") return await handleContact(request, env);
+    if (url.pathname === "/api/newsletter" && request.method === "POST") return await handleNewsletter(request, env);
+    if (url.pathname === "/api/orders" && request.method === "POST") return await handleOrders(request, env);
     if (url.pathname === "/api/checkout/status" && request.method === "GET") return handleCheckoutSession();
     if (url.pathname === "/api/checkout/session" && request.method === "POST") return handleCheckoutSession();
   } catch (error) {
