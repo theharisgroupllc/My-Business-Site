@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactForm } from "@/components/ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact Us | Everon Global Trades LLC",
@@ -17,16 +18,7 @@ export default function ContactUsPage() {
           <p className="mt-3 text-sm text-slate-600">For supplier onboarding, wholesale inquiries, and order support, please use the contact form.</p>
         </div>
 
-        <form className="rounded-xl border border-slate-200 p-6">
-          <h2 className="text-lg font-semibold text-brand-navy">Send a Message</h2>
-          <div className="mt-4 space-y-3">
-            <input placeholder="Full name" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <input type="email" placeholder="Email address" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <input placeholder="Phone number" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <textarea placeholder="Your message" rows={5} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-            <button className="rounded-md bg-brand-navy px-5 py-3 text-sm font-semibold text-white hover:bg-brand-slate">Submit Inquiry</button>
-          </div>
-        </form>
+        <ContactForm />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SectionTitle } from "@/components/SectionTitle";
 import { ProductCard } from "@/components/ProductCard";
 import { ReviewCarousel } from "@/components/ReviewCarousel";
+import { NewsletterForm } from "@/components/NewsletterForm";
 import { categories, products } from "@/lib/catalog";
 
 const bestSellers = products.slice(0, 8);
@@ -91,10 +92,7 @@ export default function HomePage() {
 
       <section className="mt-14 rounded-2xl border border-slate-200 bg-white p-8">
         <SectionTitle title="Stay Updated" subtitle="Get exclusive product launches, supplier updates, and offers directly in your inbox." />
-        <form className="flex flex-col gap-3 sm:flex-row">
-          <input type="email" placeholder="Enter your email address" className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none ring-brand-teal focus:ring sm:max-w-md" />
-          <button className="rounded-md bg-brand-teal px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700">Subscribe Newsletter</button>
-        </form>
+        <NewsletterForm />
       </section>
     </div>
   );
