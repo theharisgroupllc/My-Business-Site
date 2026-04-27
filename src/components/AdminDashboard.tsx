@@ -235,12 +235,12 @@ export function AdminDashboard() {
               name="name"
               required
               placeholder="Product name"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-5"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
             />
             <select
               name="categoryId"
               required
-              className="max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+              className="max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
             >
               <option value="">Select category</option>
               {categories.map((category) => (
@@ -256,7 +256,7 @@ export function AdminDashboard() {
               min="0"
               step="0.01"
               placeholder="Price"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-1"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2"
             />
             <input
               name="inventory"
@@ -269,13 +269,13 @@ export function AdminDashboard() {
             <input
               name="imageUrl"
               placeholder="Image URL (optional)"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-7"
             />
             <textarea
               name="description"
               placeholder="Short product description"
               rows={3}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-8"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-7"
             />
             <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-3">
               Upload product image
