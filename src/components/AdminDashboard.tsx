@@ -401,10 +401,8 @@ export function AdminDashboard() {
         </section>
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-semibold text-brand-navy">Discount Manager</h2>
-            <span className="text-xs text-slate-500">Codes apply at checkout once connected</span>
-          </div>
+          <h2 className="text-lg font-semibold leading-tight text-brand-navy whitespace-nowrap">Discount Manager</h2>
+          <p className="mt-1.5 text-xs leading-snug text-slate-500">Codes apply at checkout once connected</p>
           <form onSubmit={addDiscount} className="mt-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="discount-code" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -419,42 +417,40 @@ export function AdminDashboard() {
                 className="h-11 min-h-[44px] w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
               />
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3">
-              <div className="flex min-w-0 flex-col gap-1.5">
-                <label htmlFor="discount-type" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Type
-                </label>
-                <div className="relative">
-                  <select
-                    id="discount-type"
-                    name="type"
-                    className="h-11 min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-11 text-sm leading-snug text-slate-900 shadow-sm outline-none transition focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
-                  >
-                    <option value="percent">Percent (%)</option>
-                    <option value="fixed">Fixed amount ($)</option>
-                  </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden>
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </div>
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label htmlFor="discount-type" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Type
+              </label>
+              <div className="relative">
+                <select
+                  id="discount-type"
+                  name="type"
+                  className="h-11 min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-11 text-sm leading-snug text-slate-900 shadow-sm outline-none transition focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
+                >
+                  <option value="percent">Percent (%)</option>
+                  <option value="fixed">Fixed amount ($)</option>
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
               </div>
-              <div className="flex min-w-0 flex-col gap-1.5">
-                <label htmlFor="discount-value" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Value
-                </label>
-                <input
-                  id="discount-value"
-                  name="value"
-                  required
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  className="h-11 min-h-[44px] w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
-                />
-              </div>
+            </div>
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label htmlFor="discount-value" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Value
+              </label>
+              <input
+                id="discount-value"
+                name="value"
+                required
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="h-11 min-h-[44px] w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
+              />
             </div>
             <button
               type="submit"
@@ -464,7 +460,7 @@ export function AdminDashboard() {
             </button>
           </form>
           <div className="mt-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Active codes</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Active Codes</p>
             <div className="mt-2 max-h-[min(18rem,50vh)] divide-y divide-slate-200 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-slate-50/80">
               {data.discounts.length === 0 ? (
                 <p className="px-3 py-6 text-center text-sm text-slate-500">No discounts yet.</p>
