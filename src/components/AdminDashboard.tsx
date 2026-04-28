@@ -75,6 +75,8 @@ export function AdminDashboard() {
   const [message, setMessage] = useState("Enter your admin token to load secure dashboard data.");
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
+  /** Keeps Select category and quick picker in sync */
+  const [productCategoryId, setProductCategoryId] = useState("");
 
   const headers = useMemo(() => ({ "Content-Type": "application/json", "x-admin-token": token }), [token]);
   const requestHeaders = useMemo(() => ({ "x-admin-token": token }), [token]);
@@ -137,6 +139,7 @@ export function AdminDashboard() {
     setMessage(response.ok ? "Product saved." : "Unable to save product.");
     if (response.ok) {
       event.currentTarget.reset();
+      setProductCategoryId("");
       setImagePreview("");
       await loadData();
     }
@@ -230,25 +233,37 @@ export function AdminDashboard() {
             <h2 className="text-lg font-semibold text-brand-navy">Products & Inventory</h2>
             <span className="text-xs text-slate-500">Add, price, stock, archive</span>
           </div>
-          <form onSubmit={addProduct} className="mt-4 grid gap-3 md:grid-cols-12">
+          <form onSubmit={addProduct} data-product-form="true" className="mt-4 grid gap-3 md:grid-cols-12">
             <input
               name="name"
               required
               placeholder="Product name"
               className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
             />
-            <select
-              name="categoryId"
-              required
-              className="min-w-0 max-h-64 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative min-w-0 md:col-span-4">
+              <select
+                name="categoryId"
+                required
+                value={productCategoryId}
+                onChange={(event) => setProductCategoryId(event.target.value)}
+                className="h-11 min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-11 text-left text-sm leading-snug text-slate-900 shadow-sm outline-none transition focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
+              >
+                <option value="">Select category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <span
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
+                aria-hidden
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
             <input
               name="price"
               required
@@ -277,6 +292,29 @@ export function AdminDashboard() {
               rows={3}
               className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-6"
             />
+            <div className="md:col-span-12">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category quick picker</p>
+              <p className="mt-0.5 text-xs text-slate-500">Tap a category to fill the select above.</p>
+              <div className="mt-2 flex max-h-[7.5rem] flex-wrap gap-2 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-slate-50 p-2 sm:max-h-32">
+                {categories.map((category) => {
+                  const active = productCategoryId === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => setProductCategoryId(category.id)}
+                      className={
+                        active
+                          ? "rounded-full border border-brand-teal bg-teal-50 px-3 py-1.5 text-left text-xs font-semibold text-brand-navy shadow-sm ring-1 ring-brand-teal/30"
+                          : "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-left text-xs font-medium text-slate-700 hover:border-brand-teal/60 hover:text-brand-navy"
+                      }
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-6">
               Upload product image
               <input
