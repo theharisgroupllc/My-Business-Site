@@ -54,7 +54,10 @@ export default function TrackOrderPage() {
       <p className="mt-3 text-sm text-slate-600">
         Enter the order ID from your confirmation and the email you used at checkout.
       </p>
-      <form className="mt-6 rounded-xl border border-slate-200 p-6" onSubmit={onSubmit}>
+      <form
+        className="mt-6 rounded-xl border border-slate-200 p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-teal/40 hover:shadow-md"
+        onSubmit={onSubmit}
+      >
         <div className="space-y-3">
           <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="track-order-id">
             Order ID
@@ -82,7 +85,7 @@ export default function TrackOrderPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-md bg-brand-teal px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+            className="origin-center rounded-md bg-brand-teal px-5 py-3 text-sm font-semibold text-white transition-all duration-150 ease-out hover:scale-[1.03] hover:bg-teal-700 disabled:opacity-60"
           >
             {loading ? "Looking up…" : "Track order"}
           </button>
@@ -90,7 +93,7 @@ export default function TrackOrderPage() {
       </form>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {order && (
-        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm">
+        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-teal/40 hover:shadow-md">
           <p className="font-semibold text-brand-navy">Order {order.id}</p>
           <p className="mt-2 text-slate-700">
             <span className="text-slate-500">Placed:</span> {order.created_at}
