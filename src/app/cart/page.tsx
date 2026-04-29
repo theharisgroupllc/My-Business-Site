@@ -68,7 +68,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-40"
-                    disabled={item.product.inventory != null && item.quantity >= item.product.inventory}
+                    disabled={item.product.inventory != null && item.product.inventory > 0 && item.quantity >= item.product.inventory}
                     onClick={() => setItemQuantity(item.product.id, item.quantity + 1)}
                   >
                     +
