@@ -14,7 +14,11 @@ export default function ShopPage() {
       <p className="mt-3 text-sm text-slate-600">Select a category to explore professionally sourced products.</p>
       <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {categories.map((category) => (
-          <Link key={category.id} href={`/shop/${category.id}/`} className="rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md">
+          <Link
+            key={category.id}
+            href={`/shop/${category.id}/`}
+            className="block origin-center rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-brand-teal/10 hover:shadow-md"
+          >
             <h2 className="text-base font-semibold text-brand-navy">{category.name}</h2>
             <p className="mt-2 text-sm text-slate-600">{category.description}</p>
           </Link>
