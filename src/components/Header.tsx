@@ -29,8 +29,11 @@ export function Header() {
     };
   }, [shopOpen]);
 
+  // Hover background highlight without affecting layout (no padding/box-size changes).
   const navItemClass =
-    "inline-block origin-center rounded-md px-2 py-1 text-sm font-medium text-slate-700 transition-[transform,color,background-color] duration-150 ease-out will-change-transform hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal";
+    "relative inline-block origin-center text-sm font-medium text-slate-700 transition-[transform,color] duration-150 ease-out will-change-transform hover:scale-[1.06] hover:text-brand-teal " +
+    "before:absolute before:content-[''] before:-z-10 before:inset-0 before:rounded-md before:bg-slate-100 before:opacity-0 before:transition-opacity before:duration-150 " +
+    "before:pointer-events-none hover:before:opacity-100";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
