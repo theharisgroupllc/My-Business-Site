@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { AddToCartQuantity } from "@/components/cart/AddToCartQuantity";
 import { ProductCard } from "@/components/ProductCard";
 import type { Product } from "@/lib/catalog";
 import { getRelatedProducts, productFromAdminRow, products as staticProducts } from "@/lib/catalog";
@@ -110,11 +110,22 @@ export function ShopLiveItemContent() {
       </nav>
 
       <section className="mt-6 grid gap-8 md:grid-cols-2">
-        {product.imageUrl?.startsWith("data:") ? (
-          <img src={product.imageUrl} alt={product.name} className="h-auto w-full rounded-xl border border-slate-200 object-cover" />
-        ) : (
-          <Image src={imageSrc} alt={product.name} width={900} height={900} className="h-auto w-full rounded-xl border border-slate-200 object-cover" />
-        )}
+        <div>
+          <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+            {product.imageUrl?.startsWith("data:") ? (
+              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+            ) : (
+              <Image src={imageSrc} alt={product.name} width={900} height={675} className="h-full w-full object-cover" />
+            )}
+          </div>
+          {product.imageUrls && product.imageUrls.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {product.imageUrls.map((url, i) => (
+                <img key={i} src={url} alt="" className="h-16 w-16 rounded border border-slate-200 object-cover" />
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-brand-navy">{product.name}</h1>
@@ -123,7 +134,7 @@ export function ShopLiveItemContent() {
             {product.inStock ? "In Stock" : "Out of Stock"}
           </p>
           <p className="text-sm leading-6 text-slate-700">{product.description}</p>
-          <AddToCartButton productId={product.id} className="rounded-md bg-brand-navy px-6 py-3 text-sm font-semibold text-white hover:bg-brand-slate" />
+          <AddToCartQuantity productId={product.id} maxQuantity={product.inventory} className="max-w-xs rounded-md border border-slate-200 bg-slate-50 px-3 py-2" />
         </div>
       </section>
 

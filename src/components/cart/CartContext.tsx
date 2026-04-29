@@ -20,6 +20,8 @@ type CartContextType = {
   addItem: (productId: string) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  /** Sets cart line quantity; 0 removes the line. Persists via localStorage like other cart updates. */
+  setItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
 };
 
@@ -27,6 +29,7 @@ type CartAction =
   | { type: "add"; productId: string }
   | { type: "remove"; productId: string }
   | { type: "updateQuantity"; productId: string; quantity: number }
+  | { type: "setQuantity"; productId: string; quantity: number }
   | { type: "hydrate"; payload: CartState }
   | { type: "clear" };
 
@@ -54,6 +57,20 @@ function reducer(state: CartState, action: CartAction): CartState {
           .map((item) => (item.productId === action.productId ? { ...item, quantity: Math.max(1, action.quantity) } : item))
           .filter((item) => item.quantity > 0),
       };
+    case "setQuantity": {
+      if (action.quantity <= 0) {
+        return { items: state.items.filter((item) => item.productId !== action.productId) };
+      }
+      const existingSet = state.items.find((item) => item.productId === action.productId);
+      if (existingSet) {
+        return {
+          items: state.items.map((item) =>
+            item.productId === action.productId ? { ...item, quantity: action.quantity } : item,
+          ),
+        };
+      }
+      return { items: [...state.items, { productId: action.productId, quantity: action.quantity }] };
+    }
     case "clear":
       return { items: [] };
     case "hydrate":
@@ -85,6 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               inventory: row.inventory as number | string | undefined,
               description: row.description != null ? String(row.description) : undefined,
               image_url: row.image_url != null ? String(row.image_url) : undefined,
+              gallery_json: row.gallery_json != null ? String(row.gallery_json) : undefined,
             }),
           ),
         );
@@ -143,6 +161,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     addItem: (productId) => dispatch({ type: "add", productId }),
     removeItem: (productId) => dispatch({ type: "remove", productId }),
     updateQuantity: (productId, quantity) => dispatch({ type: "updateQuantity", productId, quantity }),
+    setItemQuantity: (productId, quantity) => dispatch({ type: "setQuantity", productId, quantity }),
     clearCart: () => dispatch({ type: "clear" }),
   };
 

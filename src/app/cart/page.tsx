@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useCart } from "@/components/cart/CartContext";
 
 export default function CartPage() {
-  const { detailedItems, subtotal, updateQuantity, removeItem } = useCart();
+  const { detailedItems, subtotal, setItemQuantity, removeItem } = useCart();
   const shipping = detailedItems.length > 0 ? 9.99 : 0;
   const total = Number((subtotal + shipping).toFixed(2));
 
@@ -16,7 +16,7 @@ export default function CartPage() {
       {detailedItems.length === 0 ? (
         <div className="mt-6 rounded-xl border border-slate-200 p-8 text-center">
           <p className="text-sm text-slate-600">Your cart is currently empty.</p>
-          <Link href="/shop" className="mt-4 inline-block rounded-md bg-brand-navy px-5 py-2 text-sm font-semibold text-white">
+          <Link href="/shop/" className="mt-4 inline-block rounded-md bg-brand-navy px-5 py-2 text-sm font-semibold text-white">
             Continue Shopping
           </Link>
         </div>
@@ -25,13 +25,17 @@ export default function CartPage() {
           <div className="space-y-4">
             {detailedItems.map((item) => (
               <article key={item.product.id} className="grid gap-4 rounded-xl border border-slate-200 p-4 sm:grid-cols-[100px_1fr_auto] sm:items-center">
-                <Image
-                  src={`https://picsum.photos/seed/${item.product.imageSeed}/220/220`}
-                  alt={item.product.name}
-                  width={100}
-                  height={100}
-                  className="h-24 w-24 rounded-lg object-cover"
-                />
+                {item.product.imageUrl?.startsWith("data:") ? (
+                  <img src={item.product.imageUrl} alt={item.product.name} className="h-24 w-24 rounded-lg object-cover" />
+                ) : (
+                  <Image
+                    src={item.product.imageUrl ?? `https://picsum.photos/seed/${item.product.imageSeed}/220/220`}
+                    alt={item.product.name}
+                    width={100}
+                    height={100}
+                    className="h-24 w-24 rounded-lg object-cover"
+                  />
+                )}
                 <div>
                   <h2 className="text-sm font-semibold text-brand-navy">{item.product.name}</h2>
                   <p className="mt-1 text-sm text-slate-600">${item.product.price} each</p>
@@ -40,11 +44,20 @@ export default function CartPage() {
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="rounded border border-slate-300 px-2 py-1 text-sm" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>
-                    -
+                  <button
+                    type="button"
+                    className="rounded border border-slate-300 px-2 py-1 text-sm"
+                    onClick={() => setItemQuantity(item.product.id, item.quantity - 1)}
+                  >
+                    −
                   </button>
                   <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
-                  <button className="rounded border border-slate-300 px-2 py-1 text-sm" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>
+                  <button
+                    type="button"
+                    className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-40"
+                    disabled={item.product.inventory != null && item.quantity >= item.product.inventory}
+                    onClick={() => setItemQuantity(item.product.id, item.quantity + 1)}
+                  >
                     +
                   </button>
                 </div>
@@ -68,7 +81,7 @@ export default function CartPage() {
                 <span>${total}</span>
               </div>
             </div>
-            <Link href="/checkout" className="mt-5 block rounded-md bg-brand-teal px-4 py-3 text-center text-sm font-semibold text-white hover:bg-teal-700">
+            <Link href="/checkout/" className="mt-5 block rounded-md bg-brand-teal px-4 py-3 text-center text-sm font-semibold text-white hover:bg-teal-700">
               Proceed to Checkout
             </Link>
           </aside>

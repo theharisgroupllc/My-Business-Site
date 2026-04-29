@@ -17,7 +17,11 @@ export type Product = {
   specifications: string[];
   imageSeed: string;
   imageUrl?: string;
+  /** Additional gallery images (data URLs or https), from D1 `gallery_json`. */
+  imageUrls?: string[];
   isLive?: boolean;
+  /** When set (e.g. D1 products), caps cart + selector. */
+  inventory?: number;
 };
 
 export const categories: Category[] = [
@@ -79,6 +83,7 @@ const buildProduct = (categoryId: string, index: number, name: string): Product 
     price,
     rating,
     inStock: index % 7 !== 0,
+    inventory: index % 7 !== 0 ? 9999 : 0,
     description:
       `${name} is sourced through verified supplier networks and designed for dependable everyday performance. This product aligns with Everon Global Trades LLC quality checks for packaging, durability, and value.`,
     specifications: [
@@ -105,6 +110,17 @@ export const getRelatedProducts = (product: Product, count = 4) =>
   products.filter((item) => item.categoryId === product.categoryId && item.id !== product.id).slice(0, count);
 
 /** Maps a D1 `products_admin` row to storefront `Product` (cart, cards, checkout). */
+function parseGalleryJson(raw: unknown): string[] {
+  if (typeof raw !== "string" || !raw.trim()) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((x) => (typeof x === "string" ? x.trim() : "")).filter(Boolean).slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
 export function productFromAdminRow(row: {
   id: string;
   slug?: string | null;
@@ -114,6 +130,7 @@ export function productFromAdminRow(row: {
   inventory?: number | string | null;
   description?: string | null;
   image_url?: string | null;
+  gallery_json?: string | null;
 }): Product {
   const id = String(row.id);
   const slug = String(row.slug ?? id);
@@ -122,6 +139,9 @@ export function productFromAdminRow(row: {
   const description =
     row.description?.trim() ||
     `${row.name} is offered through Everon Global Trades LLC with supplier-backed quality and dependable fulfillment.`;
+  const gallery = parseGalleryJson(row.gallery_json);
+  const primary = row.image_url?.trim() ? row.image_url.trim() : gallery[0];
+  const restGallery = primary && gallery[0] === primary ? gallery.slice(1) : gallery;
 
   return {
     id,
@@ -138,7 +158,9 @@ export function productFromAdminRow(row: {
       "Shipped by Everon Global Trades LLC",
     ],
     imageSeed: slug,
-    imageUrl: row.image_url?.trim() ? row.image_url.trim() : undefined,
+    imageUrl: primary,
+    imageUrls: restGallery.length ? restGallery : undefined,
     isLive: true,
+    inventory: Number.isFinite(inventory) ? Math.max(0, Math.floor(inventory)) : 0,
   };
 }

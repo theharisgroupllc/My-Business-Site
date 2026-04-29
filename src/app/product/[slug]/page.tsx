@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { AddToCartQuantity } from "@/components/cart/AddToCartQuantity";
 import { getProductBySlug, getRelatedProducts, products } from "@/lib/catalog";
 
 type ProductPageProps = {
@@ -35,13 +35,15 @@ export default function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6">
       <section className="mt-8 grid gap-8 md:grid-cols-2">
-        <Image
-          src={`https://picsum.photos/seed/${product.imageSeed}/900/900`}
-          alt={product.name}
-          width={900}
-          height={900}
-          className="h-auto w-full rounded-xl border border-slate-200 object-cover"
-        />
+        <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+          <Image
+            src={`https://picsum.photos/seed/${product.imageSeed}/900/675`}
+            alt={product.name}
+            width={900}
+            height={675}
+            className="h-full w-full object-cover"
+          />
+        </div>
 
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-brand-navy">{product.name}</h1>
@@ -60,7 +62,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             </ul>
           </div>
 
-          <AddToCartButton productId={product.id} className="rounded-md bg-brand-navy px-6 py-3 text-sm font-semibold text-white hover:bg-brand-slate" />
+          <AddToCartQuantity productId={product.id} maxQuantity={product.inventory} className="max-w-xs rounded-md border border-slate-200 bg-slate-50 px-3 py-2" />
         </div>
       </section>
 

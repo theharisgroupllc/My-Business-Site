@@ -1,4 +1,6 @@
 import { computeCheckoutTotals } from "./worker-order-pricing";
+import { DEFAULT_HOME_BEST_SELLER_IDS, getHomeBestSellerProductIds, validateStaticProductIds } from "./worker-home-best-sellers";
+import { products as catalogProducts } from "./lib/catalog";
 
 type Env = {
   ASSETS: Fetcher;
@@ -328,6 +330,22 @@ async function handleOrderTrack(request: Request, env: Env) {
   return json({ order: row });
 }
 
+async function handleHomeBestSellers(env: Env) {
+  if (!env.DB) {
+    const ids = [...DEFAULT_HOME_BEST_SELLER_IDS];
+    const list = ids
+      .map((id) => catalogProducts.find((p) => p.id === id))
+      .filter((p): p is (typeof catalogProducts)[0] => Boolean(p));
+    return json({ productIds: ids, products: list, database: false });
+  }
+  const db = env.DB;
+  const ids = await getHomeBestSellerProductIds(db);
+  const list = ids
+    .map((id) => catalogProducts.find((p) => p.id === id))
+    .filter((p): p is (typeof catalogProducts)[0] => Boolean(p));
+  return json({ productIds: ids, products: list, database: true });
+}
+
 async function handleProducts(request: Request, env: Env) {
   if (!env.DB) return json({ products: [], database: false });
   const url = new URL(request.url);
@@ -335,7 +353,7 @@ async function handleProducts(request: Request, env: Env) {
   if (categoryFilter) {
     const { results } = await env.DB
       .prepare(
-        "SELECT id, slug, name, category_id, price, inventory, description, image_url FROM products_admin WHERE status = 'active' AND category_id = ? ORDER BY updated_at DESC LIMIT 300",
+        "SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE status = 'active' AND category_id = ? ORDER BY updated_at DESC LIMIT 300",
       )
       .bind(categoryFilter)
       .all();
@@ -343,7 +361,7 @@ async function handleProducts(request: Request, env: Env) {
   }
   const { results } = await env.DB
     .prepare(
-      "SELECT id, slug, name, category_id, price, inventory, description, image_url FROM products_admin WHERE status = 'active' ORDER BY updated_at DESC LIMIT 300",
+      "SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE status = 'active' ORDER BY updated_at DESC LIMIT 300",
     )
     .all();
   return json({ products: results ?? [], database: true });
@@ -408,6 +426,42 @@ async function handleAdmin(request: Request, env: Env) {
     });
   }
 
+  if (path === "/api/admin/home-best-sellers") {
+    if (request.method === "GET") {
+      const ids = await getHomeBestSellerProductIds(db);
+      return json({ slots: ids });
+    }
+    if (request.method === "PUT") {
+      const body = await getBody(request);
+      if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
+      const slots = Array.isArray(body.slots) ? body.slots.map((s) => sanitizeText(s, 120)) : [];
+      const err = validateStaticProductIds(slots);
+      if (err) return json({ error: err }, { status: 400 });
+      const batch = db.batch(
+        slots.map((staticId, slot) =>
+          db.prepare("INSERT INTO homepage_best_sellers (slot, static_product_id) VALUES (?, ?) ON CONFLICT(slot) DO UPDATE SET static_product_id = excluded.static_product_id").bind(slot, staticId),
+        ),
+      );
+      await batch;
+      return json({ slots, message: "Homepage best sellers updated." });
+    }
+  }
+
+  const homeSlotReset = /^\/api\/admin\/home-best-sellers\/slot\/(\d+)$/;
+  const homeSlotMatch = path.match(homeSlotReset);
+  if (homeSlotMatch && request.method === "DELETE") {
+    const slot = Number(homeSlotMatch[1]);
+    if (!Number.isInteger(slot) || slot < 0 || slot > 7) {
+      return json({ error: "Slot must be 0–7." }, { status: 400 });
+    }
+    const fallback = DEFAULT_HOME_BEST_SELLER_IDS[slot];
+    await db
+      .prepare("INSERT INTO homepage_best_sellers (slot, static_product_id) VALUES (?, ?) ON CONFLICT(slot) DO UPDATE SET static_product_id = excluded.static_product_id")
+      .bind(slot, fallback)
+      .run();
+    return json({ slot, static_product_id: fallback, message: "Slot reset to default template." });
+  }
+
   if (path === "/api/admin/products") {
     if (request.method === "GET") {
       const { results } = await db.prepare("SELECT * FROM products_admin ORDER BY updated_at DESC LIMIT 200").all();
@@ -423,14 +477,22 @@ async function handleAdmin(request: Request, env: Env) {
       const imageUrl = sanitizeText(body.imageUrl, 300000);
       const price = toNumber(body.price);
       const inventory = Math.max(0, Math.floor(toNumber(body.inventory)));
+      let galleryJson: string | null = null;
+      if (Array.isArray(body.galleryImages)) {
+        const urls = (body.galleryImages as unknown[])
+          .map((x) => sanitizeText(x, 350000))
+          .filter((s) => s.length > 0)
+          .slice(0, 8);
+        if (urls.length) galleryJson = JSON.stringify(urls);
+      }
       if (!name || !categoryId || price <= 0) {
         return json({ error: "Product name, category, and price are required." }, { status: 400 });
       }
       await db
         .prepare(
-          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, description, image_url, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, description = excluded.description, image_url = excluded.image_url, updated_at = datetime('now')",
+          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, description, image_url, gallery_json, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, description = excluded.description, image_url = excluded.image_url, gallery_json = excluded.gallery_json, updated_at = datetime('now')",
         )
-        .bind(id, id, name, categoryId, price, inventory, description || null, imageUrl || null)
+        .bind(id, id, name, categoryId, price, inventory, description || null, imageUrl || null, galleryJson)
         .run();
       return json({ id, message: "Product saved." }, { status: 201 });
     }
@@ -541,6 +603,7 @@ async function handleApi(request: Request, env: Env) {
       return json({ ok: true, database: Boolean(env.DB) });
     }
     if (url.pathname.startsWith("/api/admin/")) return await handleAdmin(request, env);
+    if (url.pathname === "/api/home/best-sellers" && request.method === "GET") return await handleHomeBestSellers(env);
     if (url.pathname === "/api/products" && request.method === "GET") return await handleProducts(request, env);
     if (url.pathname === "/api/reviews") return await handleReviews(request, env);
     if (url.pathname === "/api/contact" && request.method === "POST") return await handleContact(request, env);

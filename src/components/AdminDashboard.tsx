@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { categories } from "@/lib/catalog";
+import { categories, products as catalogProducts } from "@/lib/catalog";
 
 type ProductRow = {
   id: string;
@@ -77,9 +77,9 @@ export function AdminDashboard() {
   const [imagePreview, setImagePreview] = useState("");
   /** Keeps Select category and quick picker in sync */
   const [productCategoryId, setProductCategoryId] = useState("");
+  const [homeSlots, setHomeSlots] = useState<string[]>([]);
 
   const headers = useMemo(() => ({ "Content-Type": "application/json", "x-admin-token": token }), [token]);
-  const requestHeaders = useMemo(() => ({ "x-admin-token": token }), [token]);
 
   const loadData = async () => {
     if (!token) {
@@ -93,6 +93,11 @@ export function AdminDashboard() {
       if (!response.ok) throw new Error("error" in payload ? payload.error : "Unable to load admin data.");
       setData(payload as AdminData);
       setMessage("Dashboard data loaded.");
+      const homeRes = await fetch("/api/admin/home-best-sellers", { headers });
+      if (homeRes.ok) {
+        const homeJson = (await homeRes.json()) as { slots?: string[] };
+        if (homeJson.slots?.length === 8) setHomeSlots([...homeJson.slots]);
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load admin data.");
     } finally {
@@ -127,6 +132,17 @@ export function AdminDashboard() {
       return;
     }
     const imageUrl = imageFile instanceof File && imageFile.size > 0 ? await imageToDataUrl(imageFile) : String(form.get("imageUrl") ?? "");
+    const galleryField = form.getAll("gallery");
+    const galleryImages: string[] = [];
+    for (const entry of galleryField) {
+      if (!(entry instanceof File) || entry.size === 0) continue;
+      if (entry.size > 750_000) {
+        setMessage("Each gallery image must be under 750 KB.");
+        return;
+      }
+      galleryImages.push(await imageToDataUrl(entry));
+      if (galleryImages.length >= 7) break;
+    }
     const body = {
       name: String(form.get("name") ?? ""),
       categoryId: String(form.get("categoryId") ?? ""),
@@ -134,6 +150,7 @@ export function AdminDashboard() {
       inventory: Number(form.get("inventory")),
       description: String(form.get("description") ?? ""),
       imageUrl,
+      galleryImages: galleryImages.length ? galleryImages : undefined,
     };
     const response = await fetch("/api/admin/products", { method: "POST", headers, body: JSON.stringify(body) });
     setMessage(response.ok ? "Product saved." : "Unable to save product.");
@@ -227,6 +244,71 @@ export function AdminDashboard() {
         ))}
       </section>
 
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-brand-navy">Homepage — Best Selling Products (templates)</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Eight slots shown on the homepage before live D1 products. Each slot is a catalog product ID. Save applies all slots; Reset restores one slot to its default.
+        </p>
+        {homeSlots.length === 8 ? (
+          <div className="mt-4 space-y-2">
+            {homeSlots.map((slotId, slot) => (
+              <div key={slot} className="flex flex-wrap items-center gap-2">
+                <span className="w-8 text-xs font-semibold text-slate-500">{slot + 1}</span>
+                <select
+                  value={slotId}
+                  onChange={(e) => {
+                    const next = [...homeSlots];
+                    next[slot] = e.target.value;
+                    setHomeSlots(next);
+                  }}
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                >
+                  {catalogProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.id})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                  onClick={async () => {
+                    const response = await fetch(`/api/admin/home-best-sellers/slot/${slot}`, { method: "DELETE", headers });
+                    setMessage(response.ok ? `Slot ${slot + 1} reset to default.` : "Unable to reset slot.");
+                    if (response.ok) {
+                      const j = (await response.json()) as { static_product_id?: string };
+                      if (j.static_product_id) {
+                        const next = [...homeSlots];
+                        next[slot] = j.static_product_id;
+                        setHomeSlots(next);
+                      }
+                    }
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="mt-3 rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-slate"
+              onClick={async () => {
+                const response = await fetch("/api/admin/home-best-sellers", {
+                  method: "PUT",
+                  headers,
+                  body: JSON.stringify({ slots: homeSlots }),
+                });
+                setMessage(response.ok ? "Homepage best sellers saved." : "Unable to save homepage slots.");
+              }}
+            >
+              Save homepage slots
+            </button>
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-slate-500">Load dashboard with a valid token to edit slots (requires DB migration 0006–0007).</p>
+        )}
+      </section>
+
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
@@ -316,7 +398,7 @@ export function AdminDashboard() {
               </div>
             </div>
             <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-6">
-              Upload product image
+              Upload product image (primary)
               <input
                 name="image"
                 type="file"
@@ -333,6 +415,10 @@ export function AdminDashboard() {
                   reader.readAsDataURL(file);
                 }}
               />
+            </label>
+            <label className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 md:col-span-6">
+              Additional images (up to 7, optional)
+              <input name="gallery" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple className="mt-2 block w-full text-xs" />
             </label>
             {imagePreview && (
               <div className="rounded-lg border border-slate-200 p-2 md:col-span-12">

@@ -1,13 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SectionTitle } from "@/components/SectionTitle";
-import { ProductCard } from "@/components/ProductCard";
 import { ReviewCarousel } from "@/components/ReviewCarousel";
-import { LiveProductGrid } from "@/components/LiveProductGrid";
 import { NewsletterForm } from "@/components/NewsletterForm";
-import { categories, products } from "@/lib/catalog";
-
-const bestSellers = products.slice(0, 8);
+import { HomeBestSellersSection } from "@/components/HomeBestSellersSection";
+import { categories } from "@/lib/catalog";
 
 export default function HomePage() {
   return (
@@ -39,9 +36,9 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle eyebrow="Shop By Category" title="Featured Categories" subtitle="Explore professionally sourced products across our top retail segments." />
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {categories.slice(0, 8).map((category) => (
-            <Link key={category.id} href={`/shop/${category.id}`} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md sm:p-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          {categories.map((category) => (
+            <Link key={category.id} href={`/shop/${category.id}/`} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md sm:p-5">
               <h3 className="text-sm font-semibold leading-5 text-brand-navy sm:text-base">{category.name}</h3>
               <p className="mt-2 text-xs leading-5 text-slate-600 sm:text-sm">{category.description}</p>
             </Link>
@@ -51,12 +48,7 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle eyebrow="Popular Picks" title="Best Selling Products" subtitle="Trusted products chosen by customers and retail buyers." />
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {bestSellers.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-        <LiveProductGrid className="mt-3" limit={8} />
+        <HomeBestSellersSection />
       </section>
 
       <section className="mt-14 rounded-2xl bg-slate-50 p-8">
