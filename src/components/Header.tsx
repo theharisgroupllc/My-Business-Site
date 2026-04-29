@@ -6,9 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { categories } from "@/lib/catalog";
 import { useCart } from "@/components/cart/CartContext";
 import { HeaderSearch } from "@/components/HeaderSearch";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const { totalItems } = useCart();
+  const pathname = usePathname() ?? "";
   const [shopOpen, setShopOpen] = useState(false);
   const shopRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +38,14 @@ export function Header() {
     "before:absolute before:content-[''] before:-z-10 before:inset-x-[-0.25rem] before:inset-y-[-0.125rem] before:rounded-md before:bg-slate-100 before:opacity-0 before:transition-opacity before:duration-150 " +
     "before:pointer-events-none hover:before:opacity-100";
 
+  const isHome = pathname === "/";
+  const isShop = pathname.startsWith("/shop");
+  const isAbout = pathname.startsWith("/about-us");
+  const isContact = pathname.startsWith("/contact-us");
+  const isTrack = pathname.startsWith("/track-order");
+
+  const navItemActiveClass = (active: boolean) => (active ? "before:opacity-100 text-brand-teal" : "");
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center md:px-6 lg:flex-nowrap lg:items-center lg:gap-6">
@@ -45,7 +55,7 @@ export function Header() {
           </Link>
 
           <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium lg:flex-none lg:flex-nowrap">
-            <Link href="/" className={navItemClass}>
+            <Link href="/" className={`${navItemClass} ${navItemActiveClass(isHome)}`}>
               Home
             </Link>
             <div
@@ -59,7 +69,7 @@ export function Header() {
                 aria-expanded={shopOpen}
                 aria-haspopup="true"
                 onClick={() => setShopOpen((o) => !o)}
-                className={`${navItemClass} inline-flex cursor-pointer list-none items-center gap-1 border-0 bg-transparent p-0`}
+                className={`${navItemClass} ${navItemActiveClass(isShop)} inline-flex cursor-pointer list-none items-center gap-1 border-0 bg-transparent p-0`}
               >
                 Shop
                 <svg
@@ -90,13 +100,13 @@ export function Header() {
                 </div>
               )}
             </div>
-            <Link href="/about-us" className={navItemClass}>
+            <Link href="/about-us" className={`${navItemClass} ${navItemActiveClass(isAbout)}`}>
               About Us
             </Link>
-            <Link href="/contact-us" className={navItemClass}>
+            <Link href="/contact-us" className={`${navItemClass} ${navItemActiveClass(isContact)}`}>
               Contact Us
             </Link>
-            <Link href="/track-order" className={navItemClass}>
+            <Link href="/track-order" className={`${navItemClass} ${navItemActiveClass(isTrack)}`}>
               Track Order
             </Link>
           </nav>
