@@ -78,7 +78,11 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
       </button>
       {isOpen && (
         <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
-          <ul role="listbox" aria-labelledby={`${id}-btn`} className="max-h-64 space-y-1 overflow-y-auto overflow-x-hidden">
+          <ul
+            role="listbox"
+            aria-labelledby={`${id}-btn`}
+            className="filter-dropdown-list max-h-64 space-y-1 overflow-x-hidden overflow-y-scroll"
+          >
             {options.map((option) => (
               <li key={option.value}>
                 <button

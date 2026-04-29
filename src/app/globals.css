@@ -19,6 +19,26 @@ a {
   @apply transition-colors duration-200;
 }
 
+/* Make filter dropdown scrollbars visible on all devices. */
+.visible-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+.visible-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.visible-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+
+.visible-scrollbar::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 9999px;
+}
+
 /* Prevent iOS Safari auto-zoom on focused form fields (requires >=16px). */
 @media (max-width: 768px) {
   input,
