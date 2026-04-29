@@ -23,27 +23,15 @@ export function AddToCartQuantity({ productId, className, maxQuantity }: AddToCa
   return (
     <div className={outerClassName}>
       {quantity > 0 ? (
-        <div className="flex w-full items-center gap-2">
-          <button
-            type="button"
-            className="flex h-9 flex-1 items-center justify-center rounded-md bg-brand-teal px-3 text-sm font-semibold text-white"
-            onClick={() => {
-              // Keep action intentionally inert in Added state.
-            }}
-          >
-            Added
-          </button>
-          <button
-            type="button"
-            aria-label="Remove from cart"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-300 bg-white text-red-700 transition hover:border-red-500 hover:bg-red-50"
-            onClick={() => setItemQuantity(productId, 0)}
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 3h6m2 0H7m10 0l-1 14H8L7 3m5 6v8m4-8v8" />
-            </svg>
-          </button>
-        </div>
+        <button
+          type="button"
+          className="flex h-9 w-full items-center justify-center rounded-md bg-brand-teal px-3 text-sm font-semibold text-white"
+          onClick={() => {
+            // Keep action intentionally inert in Added state.
+          }}
+        >
+          Added
+        </button>
       ) : (
         <button
           type="button"
