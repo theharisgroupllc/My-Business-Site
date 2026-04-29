@@ -304,12 +304,21 @@ export function CategoryFilters({
     () => [{ value: "all", label: "All Categories" }, ...categories.map((category) => ({ value: category.id, label: category.name }))],
     [categories],
   );
-  const ratingOptions: DropdownOption[] = [
-    { value: "0", label: "All ratings" },
-    { value: "4", label: "4.0 and above" },
-    { value: "4.3", label: "4.3 and above" },
-    { value: "4.5", label: "4.5 and above" },
-  ];
+
+  const ratingBtn = (value: string, label: string) => (
+    <button
+      key={value}
+      type="button"
+      className={`w-full rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors md:py-2 ${
+        selectedRating === value
+          ? "border-brand-teal bg-brand-teal/10 text-brand-navy"
+          : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+      }`}
+      onClick={() => onRatingChange(value)}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -341,18 +350,14 @@ export function CategoryFilters({
         />
       </div>
 
-      <div className="mt-4 space-y-2">
-        <DesktopDropdown
-          id="rating-filter"
-          label="Minimum Rating"
-          value={selectedRating}
-          options={ratingOptions}
-          onChange={onRatingChange}
-          openId={openId}
-          setOpenId={setOpenId}
-          showScrollIndicator
-          scrollHintText="Swipe down for more"
-        />
+      <div className="mt-4 border-t border-slate-100 pt-4">
+        <p className="text-xs font-medium text-slate-600">Rating</p>
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {ratingBtn("0", "All ratings")}
+          {ratingBtn("3.5", "3.5 and above")}
+          {ratingBtn("4", "4 and above")}
+          {ratingBtn("4.5", "4.5 and above")}
+        </div>
       </div>
     </aside>
   );

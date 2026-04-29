@@ -148,6 +148,7 @@ export function AdminDashboard() {
       categoryId: String(form.get("categoryId") ?? ""),
       price: Number(form.get("price")),
       inventory: Number(form.get("inventory")),
+      rating: Number(form.get("rating")),
       description: String(form.get("description") ?? ""),
       imageUrl,
       galleryImages: galleryImages.length ? galleryImages : undefined,
@@ -320,9 +321,9 @@ export function AdminDashboard() {
               name="name"
               required
               placeholder="Product name"
-              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-4"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-3"
             />
-            <div className="relative min-w-0 md:col-span-4">
+            <div className="relative min-w-0 md:col-span-3">
               <select
                 name="categoryId"
                 required
@@ -361,6 +362,17 @@ export function AdminDashboard() {
               type="number"
               min="0"
               placeholder="Stock"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums md:col-span-2"
+            />
+            <input
+              name="rating"
+              type="number"
+              min="1"
+              max="5"
+              step="0.1"
+              defaultValue={4.5}
+              placeholder="Rating (1–5)"
+              title="Customer-facing rating for filters"
               className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm tabular-nums md:col-span-2"
             />
             <input

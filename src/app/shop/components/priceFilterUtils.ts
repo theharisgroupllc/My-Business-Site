@@ -61,3 +61,9 @@ export function appendPriceSearchParams(params: URLSearchParams, preset: PricePr
     if (hi != null) params.set("maxPrice", String(hi));
   }
 }
+
+/** When > 0, adds minRating for D1-backed product API filtering. */
+export function appendRatingSearchParams(params: URLSearchParams, selectedRating: string) {
+  const v = Number(selectedRating);
+  if (Number.isFinite(v) && v > 0) params.set("minRating", String(v));
+}

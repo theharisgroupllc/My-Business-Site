@@ -5,7 +5,7 @@ import { Product, categories as allCategories, productFromAdminRow, products as 
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilters } from "./CategoryFilters";
 import type { PricePreset } from "./priceFilterUtils";
-import { appendPriceSearchParams, productPassesPriceFilter } from "./priceFilterUtils";
+import { appendPriceSearchParams, appendRatingSearchParams, productPassesPriceFilter } from "./priceFilterUtils";
 
 type CategoryProductGridProps = {
   products?: Product[];
@@ -28,6 +28,7 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
     const params = new URLSearchParams();
     if (selectedCategory !== "all") params.set("category", selectedCategory);
     appendPriceSearchParams(params, pricePreset, priceMinInput, priceMaxInput);
+    appendRatingSearchParams(params, selectedRating);
     const qs = params.toString();
     const url = qs ? `/api/products?${qs}` : "/api/products";
     fetch(url)
@@ -46,12 +47,13 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
               description: row.description != null ? String(row.description) : undefined,
               image_url: row.image_url != null ? String(row.image_url) : undefined,
               gallery_json: row.gallery_json != null ? String(row.gallery_json) : undefined,
+              rating: row.rating as number | string | undefined,
             }),
           ),
         );
       })
       .catch(() => setLiveProducts([]));
-  }, [selectedCategory, pricePreset, priceMinInput, priceMaxInput]);
+  }, [selectedCategory, pricePreset, priceMinInput, priceMaxInput, selectedRating]);
 
   useEffect(() => {
     fetchLiveProducts();
@@ -73,7 +75,8 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
 
   const filteredProducts = useMemo(() => {
     return categoryScopedProducts.filter((item) => {
-      const passesRating = item.rating >= Number(selectedRating);
+      const minRating = Number(selectedRating);
+      const passesRating = !Number.isFinite(minRating) || minRating <= 0 ? true : item.rating >= minRating;
       const passesPrice = productPassesPriceFilter(item.price, pricePreset, priceMinInput, priceMaxInput);
       return passesRating && passesPrice;
     });
