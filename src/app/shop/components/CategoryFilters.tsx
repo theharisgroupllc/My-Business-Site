@@ -84,9 +84,12 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
             aria-labelledby={`${id}-btn`}
             className={`space-y-1 overflow-x-hidden ${
               showScrollIndicator
-                ? "filter-dropdown-list max-h-40 overflow-y-scroll"
-                : "max-h-64 overflow-y-auto"
+                ? "filter-dropdown-list max-h-40 overflow-y-scroll overscroll-contain [scrollbar-gutter:stable] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
+                : "max-h-64 overflow-y-auto overscroll-contain [touch-action:pan-y]"
             }`}
+            onTouchMove={(event) => {
+              event.stopPropagation();
+            }}
           >
             {options.map((option) => (
               <li key={option.value}>
