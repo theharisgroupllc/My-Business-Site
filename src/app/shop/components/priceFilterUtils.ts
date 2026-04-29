@@ -1,4 +1,4 @@
-export type PricePreset = "all" | "under50" | "51_100" | "101_150" | "above150" | "custom";
+export type PricePreset = "all" | "under50" | "50_100" | "101_150" | "above150" | "custom";
 
 export function parsePriceInput(raw: string): number | null {
   const n = Number(String(raw).replace(/[^0-9.-]/g, ""));
@@ -9,7 +9,7 @@ export function parsePriceInput(raw: string): number | null {
 export function productPassesPriceFilter(price: number, preset: PricePreset, minInput: string, maxInput: string): boolean {
   if (preset === "all") return true;
   if (preset === "under50") return price < 50;
-  if (preset === "51_100") return price >= 51 && price <= 100;
+  if (preset === "50_100") return price >= 50 && price <= 100;
   if (preset === "101_150") return price >= 101 && price <= 150;
   if (preset === "above150") return price > 150;
   if (preset === "custom") {
@@ -33,8 +33,8 @@ export function appendPriceSearchParams(params: URLSearchParams, preset: PricePr
     params.set("maxExclusive", "50");
     return;
   }
-  if (preset === "51_100") {
-    params.set("minPrice", "51");
+  if (preset === "50_100") {
+    params.set("minPrice", "50");
     params.set("maxPrice", "100");
     return;
   }

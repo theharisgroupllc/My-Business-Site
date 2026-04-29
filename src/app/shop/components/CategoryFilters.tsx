@@ -248,7 +248,7 @@ function PriceRangeSection({
       </button>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {presetBtn("under50", "Under $50")}
-        {presetBtn("51_100", "$51 - $100")}
+        {presetBtn("50_100", "$50 - $100")}
         {presetBtn("101_150", "$101 - $150")}
         {presetBtn("above150", "Above $150")}
       </div>
