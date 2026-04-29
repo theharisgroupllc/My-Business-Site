@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Product } from "@/lib/catalog";
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { AddToCartQuantity } from "@/components/cart/AddToCartQuantity";
 import { StarRating } from "@/components/StarRating";
 
 type ProductCardProps = {
@@ -9,20 +9,26 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+  const href = product.isLive ? `/shop/item/?id=${encodeURIComponent(product.id)}` : `/product/${product.slug}/`;
+
   return (
     <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/product/${product.slug}`} className="block">
-        <Image
-          src={`https://picsum.photos/seed/${product.imageSeed}/500/500`}
-          alt={product.name}
-          width={500}
-          height={500}
-          className="h-36 w-full object-cover sm:h-52"
-        />
+      <Link href={href} className="block aspect-[4/3] w-full overflow-hidden bg-slate-100">
+        {product.imageUrl?.startsWith("data:") ? (
+          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+        ) : (
+          <Image
+            src={product.imageUrl ?? `https://picsum.photos/seed/${product.imageSeed}/500/500`}
+            alt={product.name}
+            width={500}
+            height={375}
+            className="h-full w-full object-cover"
+          />
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-3 sm:p-4">
-        <Link href={`/product/${product.slug}`} className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-slate-800 hover:text-brand-teal">
+        <Link href={href} className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-slate-800 hover:text-brand-teal">
           {product.name}
         </Link>
         <div className="mt-auto space-y-2">
@@ -30,7 +36,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <p className="text-base font-bold text-brand-navy sm:text-lg">${product.price}</p>
             <StarRating rating={product.rating} size="sm" />
           </div>
-          <AddToCartButton productId={product.id} />
+          <AddToCartQuantity productId={product.id} maxQuantity={product.isLive ? product.inventory : undefined} />
         </div>
       </div>
     </article>

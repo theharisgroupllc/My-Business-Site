@@ -25,7 +25,7 @@ export function HeaderSearch() {
   }, [trimmedQuery]);
 
   return (
-    <div className="relative col-span-2 min-w-0 sm:w-48 md:w-56">
+    <div className="group relative col-span-2 min-w-0 sm:w-48 md:w-56">
       <label htmlFor="site-product-search" className="sr-only">
         Search products
       </label>
@@ -35,12 +35,12 @@ export function HeaderSearch() {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search products..."
-        className="w-full min-w-0 rounded-md border border-slate-300 py-2 pl-3 pr-10 text-sm outline-none ring-brand-teal transition focus:ring"
+        className="w-full min-w-0 rounded-md border border-slate-300 bg-white py-2 pl-3 pr-10 text-sm outline-none ring-brand-teal transition focus:ring group-hover:scale-[1.02] group-hover:border-slate-200 group-hover:bg-slate-100 group-hover:text-brand-teal"
         autoComplete="off"
       />
       <svg
         viewBox="0 0 24 24"
-        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 fill-none stroke-slate-400 stroke-2"
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 fill-none stroke-slate-400 stroke-2 transition-colors group-hover:stroke-brand-teal"
         aria-hidden="true"
       >
         <path d="m21 21-4.3-4.3" strokeLinecap="round" />

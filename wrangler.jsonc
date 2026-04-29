@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "everon-global-trades",
+  "account_id": "97476682ed9b614c3464180fdc393ad9",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-04-26",
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "www.everonglobaltrades.com/*",
+      "zone_name": "everonglobaltrades.com"
+    },
+    {
+      "pattern": "everonglobaltrades.com/*",
+      "zone_name": "everonglobaltrades.com"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "everon-global-trades-db",
+      "database_id": "fac92926-5bea-4afd-b194-f51ede59b228"
+    }
+  ],
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  }
+}

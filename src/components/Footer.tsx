@@ -10,23 +10,38 @@ export function Footer() {
           <p className="mt-2 text-sm leading-5 text-slate-300">
             Registered US-based retail and wholesale distribution company trusted by customers and suppliers.
           </p>
-          <p className="mt-2 text-sm leading-5 text-slate-200">Email: info@everonglobaltrades.com</p>
-          <p className="text-sm leading-5 text-slate-200">Phone: +1 214 795 2842</p>
+          <p className="mt-2 text-sm leading-5 text-slate-200">
+            Email:{" "}
+            <a
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=info@everonglobaltrades.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-teal-200 underline decoration-teal-300/80 underline-offset-2 transition hover:text-white hover:decoration-white"
+            >
+              info@everonglobaltrades.com
+            </a>
+          </p>
+          <p className="text-sm leading-5 text-slate-200">
+            Phone:{" "}
+            <a href="tel:+12147952842" className="text-teal-200 underline decoration-teal-300/80 underline-offset-2 transition hover:text-white hover:decoration-white">
+              +1 214 795 2842
+            </a>
+          </p>
         </div>
 
         <div>
           <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-200">Quick Links</h4>
           <div className="mt-2 grid grid-cols-2 gap-x-5 text-sm leading-6 text-slate-300">
             <ul>
-              <li><Link href="/" className="hover:text-white">Home</Link></li>
-              <li><Link href="/cart" className="hover:text-white">Cart</Link></li>
-              <li><Link href="/about-us" className="hover:text-white">About Us</Link></li>
-              <li><Link href="/track-order" className="hover:text-white">Track Order</Link></li>
+              <li><Link href="/" className="underline-offset-2 hover:text-white hover:underline">Home</Link></li>
+              <li><Link href="/cart/" className="underline-offset-2 hover:text-white hover:underline">Cart</Link></li>
+              <li><Link href="/about-us/" className="underline-offset-2 hover:text-white hover:underline">About Us</Link></li>
+              <li><Link href="/track-order/" className="underline-offset-2 hover:text-white hover:underline">Track Order</Link></li>
             </ul>
             <ul>
-              <li><Link href="/shop" className="hover:text-white">Shop</Link></li>
-              <li><Link href="/checkout" className="hover:text-white">Checkout</Link></li>
-              <li><Link href="/contact-us" className="hover:text-white">Contact Us</Link></li>
+              <li><Link href="/shop/" className="underline-offset-2 hover:text-white hover:underline">Shop</Link></li>
+              <li><Link href="/checkout/" className="underline-offset-2 hover:text-white hover:underline">Checkout</Link></li>
+              <li><Link href="/contact-us/" className="underline-offset-2 hover:text-white hover:underline">Contact Us</Link></li>
             </ul>
           </div>
         </div>
@@ -34,9 +49,9 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-200">Policies</h4>
           <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
-            <li><Link href="/privacy-policy" className="hover:text-white">Privacy Policy</Link></li>
-            <li><Link href="/terms-and-conditions" className="hover:text-white">Terms & Conditions</Link></li>
-            <li><Link href="/refund-policy" className="hover:text-white">Refund Policy</Link></li>
+            <li><Link href="/privacy-policy/" className="underline-offset-2 hover:text-white hover:underline">Privacy Policy</Link></li>
+            <li><Link href="/terms-and-conditions/" className="underline-offset-2 hover:text-white hover:underline">Terms & Conditions</Link></li>
+            <li><Link href="/refund-policy/" className="underline-offset-2 hover:text-white hover:underline">Refund Policy</Link></li>
           </ul>
         </div>
 

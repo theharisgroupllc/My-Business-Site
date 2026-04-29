@@ -1,11 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SectionTitle } from "@/components/SectionTitle";
-import { ProductCard } from "@/components/ProductCard";
 import { ReviewCarousel } from "@/components/ReviewCarousel";
-import { categories, products } from "@/lib/catalog";
-
-const bestSellers = products.slice(0, 8);
+import { NewsletterForm } from "@/components/NewsletterForm";
+import { HomeBestSellersSection } from "@/components/HomeBestSellersSection";
+import { categories } from "@/lib/catalog";
 
 export default function HomePage() {
   return (
@@ -18,10 +17,16 @@ export default function HomePage() {
             Premium retail and wholesale sourcing across essential categories with secure checkout, dependable delivery, and verified supplier networks.
           </p>
           <div className="mt-6 flex gap-3">
-            <Link href="/shop/art-craft-sewing" className="rounded-md bg-white px-5 py-3 text-sm font-semibold text-brand-navy hover:bg-slate-100">
+            <Link
+              href="/shop/art-craft-sewing"
+              className="inline-block origin-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-brand-navy transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal"
+            >
               Start Shopping
             </Link>
-            <Link href="/about-us" className="rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">
+            <Link
+              href="/about-us"
+              className="inline-block origin-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white transition-[transform,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-white/10"
+            >
               Learn More
             </Link>
           </div>
@@ -37,11 +42,17 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle eyebrow="Shop By Category" title="Featured Categories" subtitle="Explore professionally sourced products across our top retail segments." />
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {categories.slice(0, 8).map((category) => (
-            <Link key={category.id} href={`/shop/${category.id}`} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md sm:p-5">
-              <h3 className="text-sm font-semibold leading-5 text-brand-navy sm:text-base">{category.name}</h3>
-              <p className="mt-2 text-xs leading-5 text-slate-600 sm:text-sm">{category.description}</p>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/shop/${category.id}/`}
+              className="group block origin-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.06] hover:shadow-md sm:p-5"
+            >
+              <h3 className="text-sm font-semibold leading-5 text-brand-navy transition-colors duration-150 group-hover:text-brand-teal sm:text-base">
+                {category.name}
+              </h3>
+              <p className="mt-2 text-xs leading-5 text-slate-600 transition-colors duration-150 group-hover:text-brand-teal sm:text-sm">{category.description}</p>
             </Link>
           ))}
         </div>
@@ -49,11 +60,7 @@ export default function HomePage() {
 
       <section className="mt-14">
         <SectionTitle eyebrow="Popular Picks" title="Best Selling Products" subtitle="Trusted products chosen by customers and retail buyers." />
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {bestSellers.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <HomeBestSellersSection />
       </section>
 
       <section className="mt-14 rounded-2xl bg-slate-50 p-8">
@@ -91,10 +98,7 @@ export default function HomePage() {
 
       <section className="mt-14 rounded-2xl border border-slate-200 bg-white p-8">
         <SectionTitle title="Stay Updated" subtitle="Get exclusive product launches, supplier updates, and offers directly in your inbox." />
-        <form className="flex flex-col gap-3 sm:flex-row">
-          <input type="email" placeholder="Enter your email address" className="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none ring-brand-teal focus:ring sm:max-w-md" />
-          <button className="rounded-md bg-brand-teal px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700">Subscribe Newsletter</button>
-        </form>
+        <NewsletterForm />
       </section>
     </div>
   );
