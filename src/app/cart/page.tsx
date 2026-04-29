@@ -81,7 +81,10 @@ export default function CartPage() {
                 <span>${total}</span>
               </div>
             </div>
-            <Link href="/checkout/" className="mt-5 block rounded-md bg-brand-teal px-4 py-3 text-center text-sm font-semibold text-white hover:bg-teal-700">
+            <Link
+              href="/checkout/"
+              className="mt-5 block origin-center rounded-md bg-brand-teal px-4 py-3 text-center text-sm font-semibold text-white transition-transform duration-150 ease-out hover:scale-[1.06] hover:bg-teal-700"
+            >
               Proceed to Checkout
             </Link>
           </aside>
