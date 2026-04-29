@@ -103,3 +103,42 @@ export const getProductBySlug = (slug: string) => products.find((product) => pro
 
 export const getRelatedProducts = (product: Product, count = 4) =>
   products.filter((item) => item.categoryId === product.categoryId && item.id !== product.id).slice(0, count);
+
+/** Maps a D1 `products_admin` row to storefront `Product` (cart, cards, checkout). */
+export function productFromAdminRow(row: {
+  id: string;
+  slug?: string | null;
+  name: string;
+  category_id: string;
+  price: number | string;
+  inventory?: number | string | null;
+  description?: string | null;
+  image_url?: string | null;
+}): Product {
+  const id = String(row.id);
+  const slug = String(row.slug ?? id);
+  const price = typeof row.price === "number" ? row.price : Number(row.price);
+  const inventory = row.inventory == null ? 0 : typeof row.inventory === "number" ? row.inventory : Number(row.inventory);
+  const description =
+    row.description?.trim() ||
+    `${row.name} is offered through Everon Global Trades LLC with supplier-backed quality and dependable fulfillment.`;
+
+  return {
+    id,
+    slug,
+    categoryId: row.category_id,
+    name: row.name,
+    price: Number.isFinite(price) ? price : 0,
+    rating: 4.5,
+    inStock: inventory > 0,
+    description,
+    specifications: [
+      "Supplier-verified listing",
+      "Quality-checked for retail readiness",
+      "Shipped by Everon Global Trades LLC",
+    ],
+    imageSeed: slug,
+    imageUrl: row.image_url?.trim() ? row.image_url.trim() : undefined,
+    isLive: true,
+  };
+}

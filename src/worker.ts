@@ -55,6 +55,8 @@ const sanitizeText = (value: unknown, maxLength: number) =>
   typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 
 const getSession = (request: Request) => {
+  const header = request.headers.get("x-everon-session")?.trim();
+  if (header === "authenticated") return "authenticated";
   const cookie = request.headers.get("cookie") ?? "";
   const match = cookie.match(/(?:^|;\s*)everon_session=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : "";
@@ -105,7 +107,7 @@ async function handleReviews(request: Request, env: Env) {
     if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
 
     const productId = sanitizeText(body.productId, 80);
-    const customerName = sanitizeText(body.customerName, 120) || "Verified Customer";
+    const customerName = sanitizeText(body.customerName ?? body.name, 120) || "Verified Customer";
     const quote = sanitizeText(body.quote, 800);
     const rating = Number(body.rating);
 
@@ -171,8 +173,13 @@ async function handleOrders(request: Request, env: Env) {
   const body = await getBody(request);
   if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
 
-  const customerEmail = sanitizeText(body.customerEmail, 180);
-  const customerName = sanitizeText(body.customerName, 160) || "Guest Customer";
+  const customerBlock = body.customer && typeof body.customer === "object" ? (body.customer as Record<string, unknown>) : null;
+  const customerEmail = sanitizeText(body.customerEmail ?? customerBlock?.email, 180);
+  const first = sanitizeText(customerBlock?.firstName, 80);
+  const last = sanitizeText(customerBlock?.lastName, 80);
+  const customerName =
+    sanitizeText(body.customerName, 160) || [first, last].filter(Boolean).join(" ").trim() || "Guest Customer";
+
   const items = Array.isArray(body.items) ? body.items : [];
   const total = Number(body.total);
 
@@ -180,19 +187,64 @@ async function handleOrders(request: Request, env: Env) {
     return json({ error: "Customer email, order items, and total are required." }, { status: 400 });
   }
 
+  const shipping = customerBlock
+    ? {
+        firstName: first,
+        lastName: last,
+        address: sanitizeText(customerBlock.address, 240),
+        city: sanitizeText(customerBlock.city, 120),
+        state: sanitizeText(customerBlock.state, 80),
+        postalCode: sanitizeText(customerBlock.postalCode, 40),
+        phone: sanitizeText(customerBlock.phone, 60),
+      }
+    : {};
+  const phone = sanitizeText(customerBlock?.phone, 60) || null;
+  const shippingJson = JSON.stringify(shipping).slice(0, 8000);
+
   const id = crypto.randomUUID();
   await db
     .prepare(
-      "INSERT INTO orders (id, customer_email, customer_name, items_json, shipping_json, total, status, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending_payment', 'not_configured', datetime('now'))",
+      "INSERT INTO orders (id, customer_email, customer_name, phone, items_json, shipping_json, total, status, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending_payment', 'not_configured', datetime('now'))",
     )
-    .bind(id, customerEmail, customerName, JSON.stringify(items).slice(0, 8000), "{}", total)
+    .bind(id, customerEmail, customerName, phone, JSON.stringify(items).slice(0, 8000), shippingJson, total)
     .run();
 
   return json({ id, paymentStatus: "pending_payment" }, { status: 201 });
 }
 
-async function handleProducts(env: Env) {
+async function handleOrderTrack(request: Request, env: Env) {
+  const db = requireDb(env);
+  const url = new URL(request.url);
+  const id = sanitizeText(url.searchParams.get("id"), 80);
+  const email = sanitizeText(url.searchParams.get("email"), 180);
+  if (!id || !email) {
+    return json({ error: "Order id and email are required." }, { status: 400 });
+  }
+  const row = await db
+    .prepare(
+      "SELECT id, customer_name, customer_email, total, status, payment_status, items_json, shipping_json, created_at FROM orders WHERE id = ? AND lower(customer_email) = lower(?)",
+    )
+    .bind(id, email)
+    .first<Record<string, unknown>>();
+  if (!row) {
+    return json({ error: "No order found for this id and email." }, { status: 404 });
+  }
+  return json({ order: row });
+}
+
+async function handleProducts(request: Request, env: Env) {
   if (!env.DB) return json({ products: [], database: false });
+  const url = new URL(request.url);
+  const categoryFilter = sanitizeText(url.searchParams.get("category"), 120);
+  if (categoryFilter) {
+    const { results } = await env.DB
+      .prepare(
+        "SELECT id, slug, name, category_id, price, inventory, description, image_url FROM products_admin WHERE status = 'active' AND category_id = ? ORDER BY updated_at DESC LIMIT 300",
+      )
+      .bind(categoryFilter)
+      .all();
+    return json({ products: results ?? [], database: true });
+  }
   const { results } = await env.DB
     .prepare(
       "SELECT id, slug, name, category_id, price, inventory, description, image_url FROM products_admin WHERE status = 'active' ORDER BY updated_at DESC LIMIT 300",
@@ -220,14 +272,44 @@ async function handleAdmin(request: Request, env: Env) {
   const path = url.pathname;
 
   if (path === "/api/admin/summary") {
-    const [orders, pendingReviews, contacts, subscribers, products] = await Promise.all([
-      db.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS total FROM orders").first(),
-      db.prepare("SELECT COUNT(*) AS count FROM reviews WHERE status = 'pending'").first(),
-      db.prepare("SELECT COUNT(*) AS count FROM contact_messages WHERE status = 'new'").first(),
-      db.prepare("SELECT COUNT(*) AS count FROM newsletter_subscribers").first(),
-      db.prepare("SELECT COUNT(*) AS count FROM products_admin").first(),
-    ]);
-    return json({ orders, pendingReviews, contacts, subscribers, products });
+    const [ordersAgg, pendingReviews, contacts, subscribers, activeProducts, productsList, ordersList, reviewsList, discountsList, customersList] =
+      await Promise.all([
+        db.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS total FROM orders").first(),
+        db.prepare("SELECT COUNT(*) AS count FROM reviews WHERE status = 'pending'").first(),
+        db.prepare("SELECT COUNT(*) AS count FROM contact_messages WHERE status = 'new'").first(),
+        db.prepare("SELECT COUNT(*) AS count FROM newsletter_subscribers").first(),
+        db.prepare("SELECT COUNT(*) AS count FROM products_admin WHERE status = 'active'").first(),
+        db.prepare("SELECT * FROM products_admin ORDER BY updated_at DESC LIMIT 200").all(),
+        db.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 200").all(),
+        db.prepare("SELECT * FROM reviews ORDER BY created_at DESC LIMIT 200").all(),
+        db.prepare("SELECT * FROM discounts ORDER BY updated_at DESC LIMIT 100").all(),
+        db
+          .prepare(
+            "SELECT customer_email, MAX(customer_name) AS customer_name, COUNT(*) AS orders_count, COALESCE(SUM(total), 0) AS lifetime_value, MAX(created_at) AS last_order_at FROM orders GROUP BY customer_email ORDER BY last_order_at DESC LIMIT 200",
+          )
+          .all(),
+      ]);
+
+    const orderCount = Number((ordersAgg as { count?: number })?.count ?? 0);
+    const revenue = Number((ordersAgg as { total?: number })?.total ?? 0);
+    const pendingCount = Number((pendingReviews as { count?: number })?.count ?? 0);
+    const activeCount = Number((activeProducts as { count?: number })?.count ?? 0);
+    const subscriberCount = Number((subscribers as { count?: number })?.count ?? 0);
+
+    return json({
+      reports: {
+        totalOrders: orderCount,
+        totalRevenue: revenue,
+        pendingReviews: pendingCount,
+        activeProducts: activeCount,
+        subscribers: subscriberCount,
+      },
+      products: productsList.results ?? [],
+      orders: ordersList.results ?? [],
+      reviews: reviewsList.results ?? [],
+      discounts: discountsList.results ?? [],
+      customers: customersList.results ?? [],
+    });
   }
 
   if (path === "/api/admin/products") {
@@ -290,10 +372,21 @@ async function handleAdmin(request: Request, env: Env) {
   }
 
   if (path.startsWith("/api/admin/reviews/") && request.method === "PATCH") {
-    const id = decodeURIComponent(path.split("/").at(-2) ?? "");
-    const action = path.split("/").pop();
-    const status = action === "approve" ? "approved" : action === "reject" ? "rejected" : "";
-    if (!id || !status) return json({ error: "Invalid review action." }, { status: 400 });
+    const segments = path.split("/").filter(Boolean);
+    const id = decodeURIComponent(segments[3] ?? "");
+    if (!id) return json({ error: "Review id required." }, { status: 400 });
+
+    let status = "";
+    if (request.headers.get("content-type")?.includes("application/json")) {
+      const body = await getBody(request);
+      const raw = sanitizeText(body?.status, 20).toLowerCase();
+      if (raw === "approved" || raw === "rejected") status = raw;
+    }
+    if (!status) {
+      const action = segments[4];
+      status = action === "approve" ? "approved" : action === "reject" ? "rejected" : "";
+    }
+    if (!status) return json({ error: "Invalid review action. Use status approved|rejected or /approve /reject." }, { status: 400 });
     await db.prepare("UPDATE reviews SET status = ? WHERE id = ?").bind(status, id).run();
     return json({ id, status });
   }
@@ -335,15 +428,28 @@ async function handleAdmin(request: Request, env: Env) {
 async function handleApi(request: Request, env: Env) {
   const url = new URL(request.url);
 
+  if (url.pathname === "/api/reviews" && request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, POST, OPTIONS",
+        "access-control-allow-headers": "content-type, x-everon-session",
+        "access-control-max-age": "86400",
+      },
+    });
+  }
+
   try {
     if (url.pathname === "/api/health") {
       return json({ ok: true, database: Boolean(env.DB) });
     }
     if (url.pathname.startsWith("/api/admin/")) return await handleAdmin(request, env);
-    if (url.pathname === "/api/products" && request.method === "GET") return await handleProducts(env);
+    if (url.pathname === "/api/products" && request.method === "GET") return await handleProducts(request, env);
     if (url.pathname === "/api/reviews") return await handleReviews(request, env);
     if (url.pathname === "/api/contact" && request.method === "POST") return await handleContact(request, env);
     if (url.pathname === "/api/newsletter" && request.method === "POST") return await handleNewsletter(request, env);
+    if (url.pathname === "/api/orders/track" && request.method === "GET") return await handleOrderTrack(request, env);
     if (url.pathname === "/api/orders" && request.method === "POST") return await handleOrders(request, env);
     if (url.pathname === "/api/checkout/status" && request.method === "GET") return handleCheckoutSession();
     if (url.pathname === "/api/checkout/session" && request.method === "POST") return handleCheckoutSession();

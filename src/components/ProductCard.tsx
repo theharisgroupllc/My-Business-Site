@@ -9,20 +9,26 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+  const href = product.isLive ? `/shop/item/?id=${encodeURIComponent(product.id)}` : `/product/${product.slug}/`;
+
   return (
     <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/product/${product.slug}`} className="block">
-        <Image
-          src={product.imageUrl ?? `https://picsum.photos/seed/${product.imageSeed}/500/500`}
-          alt={product.name}
-          width={500}
-          height={500}
-          className="h-36 w-full object-cover sm:h-52"
-        />
+      <Link href={href} className="block">
+        {product.imageUrl?.startsWith("data:") ? (
+          <img src={product.imageUrl} alt={product.name} className="h-36 w-full object-cover sm:h-52" />
+        ) : (
+          <Image
+            src={product.imageUrl ?? `https://picsum.photos/seed/${product.imageSeed}/500/500`}
+            alt={product.name}
+            width={500}
+            height={500}
+            className="h-36 w-full object-cover sm:h-52"
+          />
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-3 sm:p-4">
-        <Link href={`/product/${product.slug}`} className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-slate-800 hover:text-brand-teal">
+        <Link href={href} className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-slate-800 hover:text-brand-teal">
           {product.name}
         </Link>
         <div className="mt-auto space-y-2">

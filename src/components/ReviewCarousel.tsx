@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { StarRating } from "@/components/StarRating";
 
 type Review = {
-  id?: number;
+  id?: string | number;
   name: string;
   company: string;
   rating: number;
@@ -59,7 +59,15 @@ export function ReviewCarousel() {
       })
       .then((data) => {
         if (data.reviews?.length) {
-          setReviews(data.reviews);
+          setReviews(
+            data.reviews.map((r: Record<string, unknown>, index: number) => ({
+              id: (r.id as string | number | undefined) ?? `r-${index}`,
+              name: String(r.customer_name ?? r.name ?? "Customer"),
+              company: String(r.company ?? "Verified Customer"),
+              rating: Number(r.rating ?? 5),
+              quote: String(r.quote ?? r.body ?? ""),
+            })),
+          );
         }
       })
       .catch(() => {
@@ -89,22 +97,23 @@ export function ReviewCarousel() {
     const response = await fetch("/api/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-everon-session": "authenticated" },
-      body: JSON.stringify({ name: "Verified Customer", company: "Customer Review", rating, quote }),
+      body: JSON.stringify({ customerName: "Verified Customer", rating, quote }),
     });
 
     if (response.ok) {
       event.currentTarget.reset();
       setReviewMessage("Thank you. Your review was received and is pending approval.");
     } else {
-      setReviewMessage("Reviews are ready, but the database is not connected yet.");
+      const err = (await response.json().catch(() => ({}))) as { error?: string };
+      setReviewMessage(err.error ?? "Could not submit review. Try again or check that you are signed in.");
     }
   };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex transition-transform duration-700 ease-out" style={trackStyle}>
-        {reviews.map((review) => (
-          <article key={review.name} className="min-w-full p-5 sm:p-6">
+        {reviews.map((review, index) => (
+          <article key={String(review.id ?? `${review.name}-${index}`)} className="min-w-full p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StarRating rating={review.rating} />
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Verified review</span>
@@ -120,7 +129,7 @@ export function ReviewCarousel() {
         <div className="flex gap-2">
           {reviews.map((review, index) => (
             <button
-              key={review.name}
+              key={String(review.id ?? `${review.name}-${index}`)}
               type="button"
               aria-label={`Show review ${index + 1}`}
               onClick={() => setActiveIndex(index)}
