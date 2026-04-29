@@ -35,7 +35,7 @@ export function HeaderSearch() {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search products..."
-        className="w-full min-w-0 rounded-md border border-slate-300 bg-white py-2 pl-3 pr-10 text-sm outline-none ring-brand-teal transition focus:ring group-hover:scale-[1.02] group-hover:border-slate-200 group-hover:bg-slate-100 group-hover:text-brand-teal"
+        className="w-full min-w-0 rounded-md border border-slate-300 bg-white py-2 pl-3 pr-10 text-sm outline-none ring-brand-teal transition focus:ring md:group-hover:scale-[1.02] md:group-hover:border-slate-200 md:group-hover:bg-slate-100 md:group-hover:text-brand-teal"
         autoComplete="off"
       />
       <svg
