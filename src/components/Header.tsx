@@ -12,7 +12,26 @@ export function Header() {
   const { totalItems } = useCart();
   const pathname = usePathname() ?? "";
   const [shopOpen, setShopOpen] = useState(false);
+  const [canHover, setCanHover] = useState(false);
   const shopRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Mobile/touch devices par `onMouseEnter/onMouseLeave` click ke sath interfere karta hai
+    // (dropdown first tap pe open ho kar wapas close ho jata hai). Is liye hover-only logic
+    // sirf "fine pointer + hover supported" devices par enable karte hain.
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(mql.matches);
+    update();
+
+    // Safari/older browsers compatibility
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", update);
+      return () => mql.removeEventListener("change", update);
+    }
+    mql.addListener(update);
+    return () => mql.removeListener(update);
+  }, []);
 
   useEffect(() => {
     if (!shopOpen) return;
@@ -64,8 +83,14 @@ export function Header() {
             <div
               ref={shopRef}
               className="relative"
-              onMouseEnter={() => setShopOpen(true)}
-              onMouseLeave={() => setShopOpen(false)}
+              onMouseEnter={() => {
+                if (!canHover) return;
+                setShopOpen(true);
+              }}
+              onMouseLeave={() => {
+                if (!canHover) return;
+                setShopOpen(false);
+              }}
             >
               <button
                 type="button"
