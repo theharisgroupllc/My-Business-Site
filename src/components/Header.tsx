@@ -51,12 +51,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center md:px-6 lg:flex-nowrap lg:items-center lg:gap-6">
-        <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-x-6 sm:flex-1 lg:w-auto lg:max-w-none lg:flex-1 lg:flex-nowrap">
+        {/* On mobile, stack logo above nav so nav has enough width to wrap horizontally. */}
+        <div className="flex min-w-0 w-full flex-1 flex-col items-start gap-3 sm:flex-1 sm:flex-wrap sm:flex-row sm:items-center sm:gap-x-6 lg:w-auto lg:max-w-none lg:flex-1 lg:flex-nowrap">
           <Link href="/" className="inline-flex max-w-full shrink-0 items-center self-start sm:self-center">
             <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={280} height={46} className="h-10 max-w-full w-auto" priority />
           </Link>
 
-          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium lg:flex-none lg:flex-nowrap">
+          <nav className="flex min-w-0 w-full flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 text-sm font-medium sm:gap-x-6 lg:flex-none lg:flex-nowrap lg:w-auto">
             <Link href="/" className={`${navItemClass} ${navItemActiveClass(isHome)}`}>
               Home
             </Link>
