@@ -44,8 +44,12 @@ export function Header() {
   const isContact = pathname.startsWith("/contact-us");
   const isTrack = pathname.startsWith("/track-order");
 
-  // Match hover styling even after click/route change: keep grey background, green text, and subtle scale.
-  const navItemActiveClass = (active: boolean) => (active ? "before:opacity-100 text-brand-teal scale-[1.06]" : "");
+  // Match hover styling even after click/route change:
+  // grey background + green text + subtle scale.
+  const navItemActiveClass = (active: boolean) =>
+    // `!` is important here because the base nav link also sets a text color.
+    // Without forcing, Tailwind utility ordering can prevent active green from sticking.
+    active ? "before:opacity-100 !text-brand-teal scale-[1.06]" : "";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
