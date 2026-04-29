@@ -76,7 +76,7 @@ export function Header() {
                       <Link
                         key={category.id}
                         href={`/shop/${category.id}`}
-                        className="inline-block origin-center rounded px-2 py-1 text-xs text-slate-700 transition-[transform,color] duration-150 ease-out hover:scale-[1.06] hover:text-brand-teal"
+                        className="inline-block origin-center rounded px-2 py-1 text-xs text-slate-700 transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal"
                         onClick={() => setShopOpen(false)}
                       >
                         {category.name}
