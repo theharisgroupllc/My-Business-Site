@@ -67,7 +67,7 @@ export default function HomePage() {
         <SectionTitle title="Why Choose Us" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {["Fast Shipping", "Quality Products", "Trusted Suppliers", "Secure Payments"].map((item) => (
-            <div key={item} className="rounded-lg border border-slate-200 bg-white p-4 text-center text-sm font-medium text-brand-navy">
+            <div key={item} className="rounded-lg border border-slate-200 bg-slate-100 p-4 text-center text-sm font-medium text-brand-navy">
               {item}
             </div>
           ))}
