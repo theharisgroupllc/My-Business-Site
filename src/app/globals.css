@@ -19,22 +19,22 @@ a {
   @apply transition-colors duration-200;
 }
 
-/* Make filter dropdown scrollbars visible on all devices. */
-.visible-scrollbar {
+/* Make category dropdown scrollbar visible on all devices. */
+.category-visible-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #94a3b8 #f1f5f9;
 }
 
-.visible-scrollbar::-webkit-scrollbar {
+.category-visible-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
 
-.visible-scrollbar::-webkit-scrollbar-track {
+.category-visible-scrollbar::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 9999px;
 }
 
-.visible-scrollbar::-webkit-scrollbar-thumb {
+.category-visible-scrollbar::-webkit-scrollbar-thumb {
   background: #94a3b8;
   border-radius: 9999px;
 }

@@ -27,9 +27,10 @@ type DesktopDropdownProps = {
   onChange: (value: string) => void;
   openId: string | null;
   setOpenId: (id: string | null) => void;
+  showScrollIndicator?: boolean;
 };
 
-function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenId }: DesktopDropdownProps) {
+function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenId, showScrollIndicator = false }: DesktopDropdownProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isOpen = openId === id;
   const selectedLabel = options.find((option) => option.value === value)?.label ?? options[0]?.label ?? "Select";
@@ -81,7 +82,11 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
           <ul
             role="listbox"
             aria-labelledby={`${id}-btn`}
-            className="filter-dropdown-list max-h-64 space-y-1 overflow-x-hidden overflow-y-scroll"
+            className={`space-y-1 overflow-x-hidden ${
+              showScrollIndicator
+                ? "filter-dropdown-list max-h-40 overflow-y-scroll"
+                : "max-h-64 overflow-y-auto"
+            }`}
           >
             {options.map((option) => (
               <li key={option.value}>
@@ -153,6 +158,7 @@ export function CategoryFilters({
           onChange={onCategoryChange}
           openId={openId}
           setOpenId={setOpenId}
+          showScrollIndicator
         />
       </div>
 
