@@ -165,6 +165,8 @@ function DesktopDropdown({
   );
 }
 
+const QUICK_PRICE_PRESETS: PricePreset[] = ["all", "under50", "50_100", "101_150", "above150"];
+
 function PriceRangeSection({
   pricePreset,
   priceMinInput,
@@ -182,35 +184,45 @@ function PriceRangeSection({
   onPriceMaxInputChange: (value: string) => void;
   onApplyCustomPriceRange: () => void;
 }) {
-  const presetBtn = (preset: PricePreset, label: string) => (
-    <button
-      key={preset}
-      type="button"
-      className={`w-full rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors md:py-2 ${
-        pricePreset === preset
-          ? "border-brand-teal bg-brand-teal/10 text-brand-navy"
-          : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
-      }`}
-      onClick={() => onPricePresetChange(preset)}
-    >
-      {label}
-    </button>
-  );
+  /** Custom min/max + Apply only when "All prices" or already in custom mode; quick presets turn this off. */
+  const customEnabled = pricePreset === "all" || pricePreset === "custom";
+
+  const selectValue = pricePreset === "custom" ? "__custom__" : pricePreset;
+
+  const onQuickSelectChange = (raw: string) => {
+    if (raw === "__custom__") return;
+    const next = raw as PricePreset;
+    if (!QUICK_PRICE_PRESETS.includes(next)) return;
+    onPricePresetChange(next);
+    if (next !== "custom" && next !== "all") {
+      onPriceMinInputChange("");
+      onPriceMaxInputChange("");
+    }
+  };
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-slate-600">Price Range</p>
-      <button
-        type="button"
-        className={`w-full rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors md:py-2 ${
-          pricePreset === "all"
-            ? "border-brand-teal bg-brand-teal/10 text-brand-navy"
-            : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
-        }`}
-        onClick={() => onPricePresetChange("all")}
+      <label htmlFor="filter-price-preset" className="text-xs font-medium text-slate-600">
+        Price range
+      </label>
+      <select
+        id="filter-price-preset"
+        value={selectValue}
+        onChange={(e) => onQuickSelectChange(e.target.value)}
+        className="h-11 min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-10 text-left text-sm text-slate-900 shadow-sm outline-none transition focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
       >
-        All Prices
-      </button>
+        <option value="all">All Prices</option>
+        <option value="under50">Under $50</option>
+        <option value="50_100">$50 - $100</option>
+        <option value="101_150">$101 - $150</option>
+        <option value="above150">Above $150</option>
+        {pricePreset === "custom" ? (
+          <option value="__custom__">Custom range (applied)</option>
+        ) : null}
+      </select>
+      <p className={`text-[11px] leading-snug ${customEnabled ? "text-slate-500" : "text-slate-400"}`}>
+        {customEnabled ? "Enter min/max below, then Apply — or choose a quick band above." : "Clear the quick filter (choose All Prices) to use a custom range."}
+      </p>
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label htmlFor="filter-price-min" className="sr-only">
@@ -221,8 +233,9 @@ function PriceRangeSection({
             inputMode="decimal"
             placeholder="Min $"
             value={priceMinInput}
+            disabled={!customEnabled}
             onChange={(e) => onPriceMinInputChange(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           />
         </div>
         <div>
@@ -234,24 +247,20 @@ function PriceRangeSection({
             inputMode="decimal"
             placeholder="Max $"
             value={priceMaxInput}
+            disabled={!customEnabled}
             onChange={(e) => onPriceMaxInputChange(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           />
         </div>
       </div>
       <button
         type="button"
-        className="w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate md:py-2"
+        disabled={!customEnabled}
+        className="w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate disabled:cursor-not-allowed disabled:opacity-60 md:py-2"
         onClick={onApplyCustomPriceRange}
       >
         Apply custom range
       </button>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {presetBtn("under50", "Under $50")}
-        {presetBtn("50_100", "$50 - $100")}
-        {presetBtn("101_150", "$101 - $150")}
-        {presetBtn("above150", "Above $150")}
-      </div>
     </div>
   );
 }
