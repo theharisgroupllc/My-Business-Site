@@ -17,10 +17,10 @@ export function AddToCartQuantity({ productId, className, maxQuantity }: AddToCa
   const cap = maxQuantity != null && Number.isFinite(maxQuantity) && maxQuantity > 0 ? Math.floor(maxQuantity) : 999;
 
   const baseBtn =
-    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm transition hover:border-brand-teal hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40";
+    "inline-flex h-8 min-w-[1.75rem] items-center justify-center rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-800 shadow-sm transition hover:border-brand-teal hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:min-w-[2.25rem] sm:text-sm";
 
   const outerBase =
-    "flex w-full items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5";
+    "flex w-full flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between";
   const outerClassName = [outerBase, className].filter(Boolean).join(" ");
 
   const iconTrash = (
@@ -34,7 +34,7 @@ export function AddToCartQuantity({ productId, className, maxQuantity }: AddToCa
       {quantity <= 0 ? (
         <button
           type="button"
-          className="flex h-9 w-full items-center justify-center rounded-md bg-brand-teal px-3 text-sm font-semibold text-white transition hover:bg-teal-700"
+          className="flex h-9 w-full items-center justify-center rounded-md bg-brand-teal px-3 text-sm font-semibold text-white transition hover:bg-teal-700 sm:h-9"
           onClick={() => setItemQuantity(productId, 1)}
         >
           Add to Cart
@@ -42,13 +42,13 @@ export function AddToCartQuantity({ productId, className, maxQuantity }: AddToCa
       ) : (
         <>
           {/* Left compact box: "Added" */}
-          <div className="flex h-9 flex-shrink-0 items-center justify-center rounded-md bg-brand-teal px-3 text-sm font-semibold text-white transition-all">
+          <div className="flex h-8 w-full items-center justify-center rounded-md bg-brand-teal px-3 text-sm font-semibold text-white transition-all sm:h-9 sm:w-auto sm:flex-shrink-0">
             Added
           </div>
 
           {/* Right box: quantity controls */}
-          <div className="flex min-w-0 flex-1 items-center justify-center">
-            <div className="flex w-full max-w-[12rem] items-center justify-between gap-2 rounded-md border border-slate-200 bg-white px-2 py-1">
+          <div className="flex w-full min-w-0 items-center justify-center sm:flex-1">
+            <div className="flex w-full items-center justify-between gap-2 rounded-md border border-slate-200 bg-white px-2 py-1">
               {quantity === 1 ? (
                 <button
                   type="button"
@@ -70,7 +70,7 @@ export function AddToCartQuantity({ productId, className, maxQuantity }: AddToCa
                 </button>
               )}
 
-              <span className="min-w-[2rem] text-center text-sm font-semibold tabular-nums text-brand-navy">
+              <span className="min-w-[1.75rem] text-center text-xs font-semibold tabular-nums text-brand-navy sm:min-w-[2rem] sm:text-sm">
                 {quantity}
               </span>
 
