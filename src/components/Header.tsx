@@ -44,7 +44,9 @@ export function Header() {
   const isContact = pathname.startsWith("/contact-us");
   const isTrack = pathname.startsWith("/track-order");
 
-  const navItemActiveClass = (active: boolean) => (active ? "before:opacity-100 text-brand-teal" : "");
+  const navItemActiveClass = (active: boolean) =>
+    // `!` important so active green wins over base `text-slate-700`.
+    active ? "before:opacity-100 !text-brand-teal scale-[1.06]" : "";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">

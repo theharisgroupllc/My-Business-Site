@@ -47,7 +47,7 @@ export default function HomePage() {
             <Link
               key={category.id}
               href={`/shop/${category.id}/`}
-              className="group block origin-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.06] hover:shadow-md sm:p-5"
+              className="group block origin-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-[transform,box-shadow,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-brand-teal/10 hover:shadow-md sm:p-5"
             >
               <h3 className="text-sm font-semibold leading-5 text-brand-navy transition-colors duration-150 group-hover:text-brand-teal sm:text-base">
                 {category.name}
