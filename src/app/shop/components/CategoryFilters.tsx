@@ -129,6 +129,34 @@ export function CategoryFilters({
 }: CategoryFiltersProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (openId !== "category-filter") return;
+    if (!window.matchMedia("(max-width: 768px)").matches) return;
+
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const prevOverflow = body.style.overflow;
+    const prevPosition = body.style.position;
+    const prevTop = body.style.top;
+    const prevWidth = body.style.width;
+
+    // iOS Safari/Chrome body-lock pattern to prevent background page scroll while
+    // interacting with an inner scrollable dropdown.
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.position = prevPosition;
+      body.style.top = prevTop;
+      body.style.width = prevWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [openId]);
+
   const categoryOptions = useMemo<DropdownOption[]>(
     () => [{ value: "all", label: "All Categories" }, ...categories.map((category) => ({ value: category.id, label: category.name }))],
     [categories],

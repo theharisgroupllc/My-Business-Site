@@ -28,6 +28,10 @@ a {
   touch-action: pan-y;
 }
 
+.body-scroll-lock {
+  overflow: hidden;
+}
+
 .category-visible-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
