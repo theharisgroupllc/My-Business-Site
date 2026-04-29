@@ -32,8 +32,10 @@ type DesktopDropdownProps = {
 
 function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenId, showScrollIndicator = false }: DesktopDropdownProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const isOpen = openId === id;
   const selectedLabel = options.find((option) => option.value === value)?.label ?? options[0]?.label ?? "Select";
+  const [showMoreHint, setShowMoreHint] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,6 +53,29 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
       document.removeEventListener("keydown", onEscape);
     };
   }, [isOpen, setOpenId]);
+
+  useEffect(() => {
+    if (!isOpen || !showScrollIndicator) {
+      setShowMoreHint(false);
+      return;
+    }
+    const node = listRef.current;
+    if (!node) return;
+
+    const updateHint = () => {
+      const canScroll = node.scrollHeight > node.clientHeight + 1;
+      const nearBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 2;
+      setShowMoreHint(canScroll && !nearBottom);
+    };
+
+    updateHint();
+    node.addEventListener("scroll", updateHint, { passive: true });
+    window.addEventListener("resize", updateHint);
+    return () => {
+      node.removeEventListener("scroll", updateHint);
+      window.removeEventListener("resize", updateHint);
+    };
+  }, [isOpen, showScrollIndicator, options]);
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -80,6 +105,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
       {isOpen && (
         <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
           <ul
+            ref={listRef}
             role="listbox"
             aria-labelledby={`${id}-btn`}
             className={`space-y-1 overflow-x-hidden ${
@@ -110,6 +136,11 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
               </li>
             ))}
           </ul>
+          {showScrollIndicator && showMoreHint && (
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 rounded bg-white/95 py-1 text-center text-[11px] font-medium text-slate-500">
+              Swipe up for more categories
+            </div>
+          )}
         </div>
       )}
     </div>
