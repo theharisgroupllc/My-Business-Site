@@ -14,8 +14,19 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: CategoryPageProps): Metadata {
   const raw = typeof params?.category === "string" ? params.category : "";
-  const categoryId = decodeURIComponent(raw).replace(/^\/+|\/+$/g, "").trim();
-  const category = getCategoryById(categoryId);
+  const normalize = (input: string) =>
+    input
+      .toLowerCase()
+      .trim()
+      .replace(/^\/+|\/+$/g, "")
+      // Keep only characters we expect in our category IDs.
+      .replace(/[^a-z0-9-]/g, "")
+      // Collapse multiple dashes.
+      .replace(/-+/g, "-");
+
+  const categoryId = normalize(decodeURIComponent(raw));
+  const category =
+    categories.find((c) => normalize(c.id) === categoryId) ?? (categoryId ? getCategoryById(categoryId) : undefined);
   if (!category) {
     return { title: "Shop | Everon Global Trades LLC" };
   }
@@ -27,9 +38,20 @@ export function generateMetadata({ params }: CategoryPageProps): Metadata {
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   // Normalize param because some navigations may include/exclude a trailing slash.
+  const normalize = (input: string) =>
+    input
+      .toLowerCase()
+      .trim()
+      .replace(/^\/+|\/+$/g, "")
+      // Keep only characters we expect in our category IDs.
+      .replace(/[^a-z0-9-]/g, "")
+      // Collapse multiple dashes.
+      .replace(/-+/g, "-");
+
   const raw = typeof params?.category === "string" ? params.category : "";
-  const categoryId = decodeURIComponent(raw).replace(/^\/+|\/+$/g, "").trim();
-  const category = getCategoryById(categoryId);
+  const categoryId = normalize(decodeURIComponent(raw));
+  const category =
+    categories.find((c) => normalize(c.id) === categoryId) ?? (categoryId ? getCategoryById(categoryId) : undefined);
   if (!category) {
     notFound();
   }
