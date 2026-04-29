@@ -13,3 +13,12 @@ body {
 a {
   @apply transition-colors duration-200;
 }
+
+/* Prevent iOS Safari auto-zoom on focused form fields (requires >=16px). */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
