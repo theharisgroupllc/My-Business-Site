@@ -76,7 +76,7 @@ export function Header() {
                       <Link
                         key={category.id}
                         href={`/shop/${category.id}`}
-                        className="rounded px-2 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                        className="inline-block origin-center rounded px-2 py-1 text-xs text-slate-700 transition-[transform,color] duration-150 ease-out hover:scale-[1.06] hover:text-brand-teal"
                         onClick={() => setShopOpen(false)}
                       >
                         {category.name}
@@ -100,14 +100,28 @@ export function Header() {
 
         <div className="grid w-full grid-cols-2 items-stretch gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 lg:ml-auto lg:w-auto lg:flex-nowrap lg:shrink-0">
           <HeaderSearch />
-          <Link href="/cart" aria-label="Cart" className="inline-flex min-w-0 items-center justify-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:border-brand-teal hover:text-brand-teal">
+          <Link
+            href="/cart"
+            aria-label="Cart"
+            className="inline-flex min-w-0 origin-center items-center justify-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 transition-[transform,color,border-color] duration-150 ease-out hover:scale-[1.06] hover:border-brand-teal hover:text-brand-teal"
+          >
             <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2Zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2ZM7.17 14h9.92c.75 0 1.41-.41 1.75-1.03L22 7H6.21l-.94-2H2v2h2l3.6 7.59-1.35 2.45C5.52 18.37 6.48 20 8 20h12v-2H8l1.17-2Z" />
             </svg>
             Cart ({totalItems})
           </Link>
-          <Link href="/account" className="inline-flex min-w-0 items-center justify-center rounded-md bg-brand-navy px-4 py-2 text-center text-sm font-medium text-white hover:bg-brand-slate">Account</Link>
-          <Link href="/login" className="col-span-2 inline-flex min-w-0 items-center justify-center rounded-md border border-brand-navy px-4 py-2 text-center text-sm font-medium text-brand-navy hover:bg-slate-100 sm:col-span-1">Login</Link>
+          <Link
+            href="/account"
+            className="inline-flex min-w-0 origin-center items-center justify-center rounded-md bg-brand-navy px-4 py-2 text-center text-sm font-medium text-white transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-brand-slate hover:text-brand-teal"
+          >
+            Account
+          </Link>
+          <Link
+            href="/login"
+            className="col-span-2 inline-flex min-w-0 origin-center items-center justify-center rounded-md border border-brand-navy px-4 py-2 text-center text-sm font-medium text-brand-navy transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal sm:col-span-1"
+          >
+            Login
+          </Link>
         </div>
       </div>
     </header>

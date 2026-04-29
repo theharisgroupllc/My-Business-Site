@@ -17,10 +17,16 @@ export default function HomePage() {
             Premium retail and wholesale sourcing across essential categories with secure checkout, dependable delivery, and verified supplier networks.
           </p>
           <div className="mt-6 flex gap-3">
-            <Link href="/shop/art-craft-sewing" className="rounded-md bg-white px-5 py-3 text-sm font-semibold text-brand-navy hover:bg-slate-100">
+            <Link
+              href="/shop/art-craft-sewing"
+              className="inline-block origin-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-brand-navy transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal"
+            >
               Start Shopping
             </Link>
-            <Link href="/about-us" className="rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">
+            <Link
+              href="/about-us"
+              className="inline-block origin-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-white/10 hover:text-brand-teal"
+            >
               Learn More
             </Link>
           </div>
@@ -38,9 +44,15 @@ export default function HomePage() {
         <SectionTitle eyebrow="Shop By Category" title="Featured Categories" subtitle="Explore professionally sourced products across our top retail segments." />
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {categories.map((category) => (
-            <Link key={category.id} href={`/shop/${category.id}/`} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md sm:p-5">
-              <h3 className="text-sm font-semibold leading-5 text-brand-navy sm:text-base">{category.name}</h3>
-              <p className="mt-2 text-xs leading-5 text-slate-600 sm:text-sm">{category.description}</p>
+            <Link
+              key={category.id}
+              href={`/shop/${category.id}/`}
+              className="group block origin-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.06] hover:shadow-md sm:p-5"
+            >
+              <h3 className="text-sm font-semibold leading-5 text-brand-navy transition-colors duration-150 group-hover:text-brand-teal sm:text-base">
+                {category.name}
+              </h3>
+              <p className="mt-2 text-xs leading-5 text-slate-600 transition-colors duration-150 group-hover:text-brand-teal sm:text-sm">{category.description}</p>
             </Link>
           ))}
         </div>
