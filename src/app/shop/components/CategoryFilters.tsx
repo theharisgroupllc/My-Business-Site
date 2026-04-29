@@ -326,9 +326,9 @@ export function CategoryFilters({
   const ratingOptions = useMemo<DropdownOption[]>(
     () => [
       { value: "0", label: "All ratings" },
-      { value: "3.5", label: "3.5 and above" },
-      { value: "4", label: "4 and above" },
-      { value: "4.5", label: "4.5 and above" },
+      { value: "3.5", label: "3.5 & above" },
+      { value: "4", label: "4 & above" },
+      { value: "4.5", label: "4.5 & above" },
     ],
     [],
   );
