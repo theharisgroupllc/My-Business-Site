@@ -44,13 +44,26 @@ export default function CartPage() {
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="rounded border border-slate-300 px-2 py-1 text-sm"
-                    onClick={() => setItemQuantity(item.product.id, item.quantity - 1)}
-                  >
-                    −
-                  </button>
+                  {item.quantity === 1 ? (
+                    <button
+                      type="button"
+                      aria-label="Remove from cart"
+                      className="rounded border border-red-300 px-2 py-1 text-sm text-red-700 hover:border-red-500 hover:bg-red-50"
+                      onClick={() => setItemQuantity(item.product.id, 0)}
+                    >
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3h6m2 0H7m10 0l-1 14H8L7 3m5 6v8m4-8v8" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="rounded border border-slate-300 px-2 py-1 text-sm"
+                      onClick={() => setItemQuantity(item.product.id, item.quantity - 1)}
+                    >
+                      −
+                    </button>
+                  )}
                   <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
                   <button
                     type="button"
