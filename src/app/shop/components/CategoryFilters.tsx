@@ -165,12 +165,12 @@ function DesktopDropdown({
   );
 }
 
-const QUICK_PRICE_PRESETS: PricePreset[] = ["all", "under50", "50_100", "101_150", "above150"];
-
 function PriceRangeSection({
   pricePreset,
   priceMinInput,
   priceMaxInput,
+  openId,
+  setOpenId,
   onPricePresetChange,
   onPriceMinInputChange,
   onPriceMaxInputChange,
@@ -179,6 +179,8 @@ function PriceRangeSection({
   pricePreset: PricePreset;
   priceMinInput: string;
   priceMaxInput: string;
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
   onPricePresetChange: (preset: PricePreset) => void;
   onPriceMinInputChange: (value: string) => void;
   onPriceMaxInputChange: (value: string) => void;
@@ -187,14 +189,28 @@ function PriceRangeSection({
   /** Custom min/max + Apply only when "All prices" or already in custom mode; quick presets turn this off. */
   const customEnabled = pricePreset === "all" || pricePreset === "custom";
 
-  const selectValue = pricePreset === "custom" ? "__custom__" : pricePreset;
+  const priceBandOptions = useMemo<DropdownOption[]>(
+    () => [
+      { value: "all", label: "All Prices" },
+      { value: "under50", label: "Under $50" },
+      { value: "50_100", label: "$50 - $100" },
+      { value: "101_150", label: "$101 - $150" },
+      { value: "above150", label: "Above $150" },
+      { value: "custom", label: pricePreset === "custom" ? "Custom range (applied)" : "Custom range…" },
+    ],
+    [pricePreset],
+  );
 
-  const onQuickSelectChange = (raw: string) => {
-    if (raw === "__custom__") return;
+  const dropdownValue = pricePreset === "custom" ? "custom" : pricePreset;
+
+  const onPriceBandChange = (raw: string) => {
     const next = raw as PricePreset;
-    if (!QUICK_PRICE_PRESETS.includes(next)) return;
+    if (next === "custom") {
+      onPricePresetChange("custom");
+      return;
+    }
     onPricePresetChange(next);
-    if (next !== "custom" && next !== "all") {
+    if (next !== "all") {
       onPriceMinInputChange("");
       onPriceMaxInputChange("");
     }
@@ -202,24 +218,17 @@ function PriceRangeSection({
 
   return (
     <div className="space-y-2">
-      <label htmlFor="filter-price-preset" className="text-xs font-medium text-slate-600">
-        Price range
-      </label>
-      <select
-        id="filter-price-preset"
-        value={selectValue}
-        onChange={(e) => onQuickSelectChange(e.target.value)}
-        className="h-11 min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-10 text-left text-sm text-slate-900 shadow-sm outline-none transition focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/25 sm:h-10 sm:min-h-0"
-      >
-        <option value="all">All Prices</option>
-        <option value="under50">Under $50</option>
-        <option value="50_100">$50 - $100</option>
-        <option value="101_150">$101 - $150</option>
-        <option value="above150">Above $150</option>
-        {pricePreset === "custom" ? (
-          <option value="__custom__">Custom range (applied)</option>
-        ) : null}
-      </select>
+      <DesktopDropdown
+        id="price-band-filter"
+        label="Price range"
+        value={dropdownValue}
+        options={priceBandOptions}
+        onChange={onPriceBandChange}
+        openId={openId}
+        setOpenId={setOpenId}
+        showScrollIndicator
+        scrollHintText="Swipe down for more"
+      />
       <p className={`text-[11px] leading-snug ${customEnabled ? "text-slate-500" : "text-slate-400"}`}>
         {customEnabled ? "Enter min/max below, then Apply — or choose a quick band above." : "Clear the quick filter (choose All Prices) to use a custom range."}
       </p>
@@ -283,7 +292,7 @@ export function CategoryFilters({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (openId !== "category-filter") return;
+    if (openId !== "category-filter" && openId !== "price-band-filter") return;
     if (!window.matchMedia("(max-width: 768px)").matches) return;
 
     const body = document.body;
@@ -352,6 +361,8 @@ export function CategoryFilters({
           pricePreset={pricePreset}
           priceMinInput={priceMinInput}
           priceMaxInput={priceMaxInput}
+          openId={openId}
+          setOpenId={setOpenId}
           onPricePresetChange={onPricePresetChange}
           onPriceMinInputChange={onPriceMinInputChange}
           onPriceMaxInputChange={onPriceMaxInputChange}
