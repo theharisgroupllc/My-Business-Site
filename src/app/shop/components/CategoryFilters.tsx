@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
+
 type CategoryFiltersProps = {
   selectedCategory: string;
   categories: Array<{ id: string; name: string }>;
@@ -12,6 +14,96 @@ type CategoryFiltersProps = {
   onRatingChange: (value: string) => void;
 };
 
+type DropdownOption = {
+  value: string;
+  label: string;
+};
+
+type DesktopDropdownProps = {
+  id: string;
+  label: string;
+  value: string;
+  options: DropdownOption[];
+  onChange: (value: string) => void;
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+};
+
+function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenId }: DesktopDropdownProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isOpen = openId === id;
+  const selectedLabel = options.find((option) => option.value === value)?.label ?? options[0]?.label ?? "Select";
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const node = wrapperRef.current;
+      if (node && !node.contains(event.target as Node)) setOpenId(null);
+    };
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenId(null);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [isOpen, setOpenId]);
+
+  return (
+    <div ref={wrapperRef} className="relative hidden md:block">
+      <label htmlFor={`${id}-btn`} className="text-xs font-medium text-slate-600">
+        {label}
+      </label>
+      <button
+        id={`${id}-btn`}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className="mt-2 inline-flex w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-[color,background-color,border-color,transform] duration-150 ease-out hover:scale-[1.02] hover:border-brand-teal hover:bg-slate-100 hover:text-brand-teal"
+        onClick={() => setOpenId(isOpen ? null : id)}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <svg
+          className={`ml-2 h-3.5 w-3.5 shrink-0 text-current transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.2}
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+          <ul role="listbox" aria-labelledby={`${id}-btn`} className="max-h-64 space-y-1 overflow-auto">
+            {options.map((option) => (
+              <li key={option.value}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={option.value === value}
+                  className={`inline-block w-full origin-center rounded px-2 py-1 text-left text-xs transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.03] hover:bg-slate-100 hover:text-brand-teal ${
+                    option.value === value ? "bg-slate-100 text-brand-teal" : "text-slate-700"
+                  }`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpenId(null);
+                  }}
+                >
+                  {option.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CategoryFilters({
   selectedCategory,
   categories,
@@ -23,19 +115,46 @@ export function CategoryFilters({
   onPriceChange,
   onRatingChange,
 }: CategoryFiltersProps) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const categoryOptions = useMemo<DropdownOption[]>(
+    () => [{ value: "all", label: "All Categories" }, ...categories.map((category) => ({ value: category.id, label: category.name }))],
+    [categories],
+  );
+  const priceOptions = useMemo<DropdownOption[]>(
+    () => [
+      { value: "all", label: "All prices" },
+      { value: "budget", label: `$${minPrice} - $${(minPrice + maxPrice) / 2}` },
+      { value: "premium", label: `$${Math.floor((minPrice + maxPrice) / 2)} - $${maxPrice}` },
+    ],
+    [minPrice, maxPrice],
+  );
+  const ratingOptions: DropdownOption[] = [
+    { value: "0", label: "All ratings" },
+    { value: "4", label: "4.0 and above" },
+    { value: "4.3", label: "4.3 and above" },
+    { value: "4.5", label: "4.5 and above" },
+  ];
+
   return (
     <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-navy">Filters</h3>
 
       <div className="mt-4 space-y-2">
-        <label htmlFor="category-filter" className="text-xs font-medium text-slate-600">
-          Category
-        </label>
+        <DesktopDropdown
+          id="category-filter"
+          label="Category"
+          value={selectedCategory}
+          options={categoryOptions}
+          onChange={onCategoryChange}
+          openId={openId}
+          setOpenId={setOpenId}
+        />
         <select
           id="category-filter"
           value={selectedCategory}
           onChange={(event) => onCategoryChange(event.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:hidden"
         >
           <option value="all">All Categories</option>
           {categories.map((category) => (
@@ -47,14 +166,20 @@ export function CategoryFilters({
       </div>
 
       <div className="mt-4 space-y-2">
-        <label htmlFor="price-filter" className="text-xs font-medium text-slate-600">
-          Price Range
-        </label>
+        <DesktopDropdown
+          id="price-filter"
+          label="Price Range"
+          value={selectedPrice}
+          options={priceOptions}
+          onChange={onPriceChange}
+          openId={openId}
+          setOpenId={setOpenId}
+        />
         <select
           id="price-filter"
           value={selectedPrice}
           onChange={(event) => onPriceChange(event.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:hidden"
         >
           <option value="all">All prices</option>
           <option value="budget">${minPrice} - ${(minPrice + maxPrice) / 2}</option>
@@ -63,14 +188,20 @@ export function CategoryFilters({
       </div>
 
       <div className="mt-4 space-y-2">
-        <label htmlFor="rating-filter" className="text-xs font-medium text-slate-600">
-          Minimum Rating
-        </label>
+        <DesktopDropdown
+          id="rating-filter"
+          label="Minimum Rating"
+          value={selectedRating}
+          options={ratingOptions}
+          onChange={onRatingChange}
+          openId={openId}
+          setOpenId={setOpenId}
+        />
         <select
           id="rating-filter"
           value={selectedRating}
           onChange={(event) => onRatingChange(event.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:hidden"
         >
           <option value="0">All ratings</option>
           <option value="4">4.0 and above</option>
