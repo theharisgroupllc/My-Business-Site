@@ -32,7 +32,8 @@ export function Header() {
   // Hover background highlight without affecting layout (no padding/box-size changes).
   const navItemClass =
     "relative inline-block origin-center text-sm font-medium text-slate-700 transition-[transform,color] duration-150 ease-out will-change-transform hover:scale-[1.06] hover:text-brand-teal " +
-    "before:absolute before:content-[''] before:-z-10 before:inset-0 before:rounded-md before:bg-slate-100 before:opacity-0 before:transition-opacity before:duration-150 " +
+    // Extend slightly beyond the text bounds so the grey doesn't look like it is "inside" the letters.
+    "before:absolute before:content-[''] before:-z-10 before:inset-x-[-0.25rem] before:inset-y-[-0.125rem] before:rounded-md before:bg-slate-100 before:opacity-0 before:transition-opacity before:duration-150 " +
     "before:pointer-events-none hover:before:opacity-100";
 
   return (
