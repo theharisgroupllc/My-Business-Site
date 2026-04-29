@@ -2,16 +2,114 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
+
+type PreviewResponse = {
+  merchandiseSubtotal: number;
+  discountCode: string | null;
+  discountAmount: number;
+  taxableSubtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+};
 
 export default function CheckoutPage() {
   const { detailedItems, subtotal, clearCart } = useCart();
   const [status, setStatus] = useState("");
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
-  const shipping = detailedItems.length > 0 ? 9.99 : 0;
-  const tax = Number((subtotal * 0.07).toFixed(2));
-  const total = Number((subtotal + shipping + tax).toFixed(2));
+  const [discountInput, setDiscountInput] = useState("");
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState("");
+  const [preview, setPreview] = useState<PreviewResponse | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+
+  const clientShipping = detailedItems.length > 0 ? 9.99 : 0;
+  const clientTax = Number((subtotal * 0.07).toFixed(2));
+  const clientTotal = Number((subtotal + clientShipping + clientTax).toFixed(2));
+
+  const orderItemsPayload = useMemo(
+    () =>
+      detailedItems.map((item) => ({
+        productId: item.product.id,
+        name: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price,
+        lineTotal: item.lineTotal,
+      })),
+    [detailedItems],
+  );
+
+  const fetchPreview = useCallback(
+    async (code: string) => {
+      if (detailedItems.length === 0) {
+        setPreview(null);
+        setPreviewError("");
+        return;
+      }
+      setPreviewLoading(true);
+      setPreviewError("");
+      try {
+        const response = await fetch("/api/checkout/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: orderItemsPayload,
+            discountCode: code.trim() || undefined,
+          }),
+        });
+        const data = (await response.json()) as PreviewResponse & { error?: string };
+        if (!response.ok) {
+          setPreview(null);
+          setPreviewError(data.error ?? "Could not apply discount.");
+          return;
+        }
+        setPreview({
+          merchandiseSubtotal: data.merchandiseSubtotal,
+          discountCode: data.discountCode,
+          discountAmount: data.discountAmount,
+          taxableSubtotal: data.taxableSubtotal,
+          shipping: data.shipping,
+          tax: data.tax,
+          total: data.total,
+        });
+      } catch {
+        setPreview(null);
+        setPreviewError("Network error while calculating totals.");
+      } finally {
+        setPreviewLoading(false);
+      }
+    },
+    [detailedItems.length, orderItemsPayload],
+  );
+
+  useEffect(() => {
+    if (detailedItems.length === 0) {
+      setPreview(null);
+      setPreviewError("");
+      return;
+    }
+    void fetchPreview(appliedDiscountCode);
+  }, [detailedItems.length, appliedDiscountCode, fetchPreview]);
+
+  const display = preview
+    ? {
+        sub: preview.merchandiseSubtotal,
+        discount: preview.discountAmount,
+        afterDiscount: preview.taxableSubtotal,
+        ship: preview.shipping,
+        tax: preview.tax,
+        total: preview.total,
+      }
+    : {
+        sub: subtotal,
+        discount: 0,
+        afterDiscount: subtotal,
+        ship: clientShipping,
+        tax: clientTax,
+        total: clientTotal,
+      };
 
   return (
     <div className="mx-auto mt-10 max-w-7xl px-4 md:px-6">
@@ -41,6 +139,7 @@ export default function CheckoutPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   customerEmail,
+                  discountCode: appliedDiscountCode.trim() || undefined,
                   customer: {
                     email: customerEmail,
                     firstName: formData.get("firstName"),
@@ -51,28 +150,30 @@ export default function CheckoutPage() {
                     postalCode: formData.get("postalCode"),
                     phone: formData.get("phone"),
                   },
-                  items: detailedItems.map((item) => ({
-                    productId: item.product.id,
-                    name: item.product.name,
-                    quantity: item.quantity,
-                    price: item.product.price,
-                    lineTotal: item.lineTotal,
-                  })),
+                  items: orderItemsPayload,
                   subtotal,
-                  shipping,
-                  tax,
-                  total,
+                  shipping: clientShipping,
+                  tax: clientTax,
+                  total: clientTotal,
                 }),
               });
-              const payload = (await response.json()) as { id?: string; error?: string };
+              const payload = (await response.json()) as {
+                id?: string;
+                error?: string;
+                total?: number;
+                discountAmount?: number;
+              };
               if (!response.ok) {
                 setStatus(payload.error ?? "Unable to create order. Please try again.");
                 return;
               }
               clearCart();
+              setPreview(null);
+              setAppliedDiscountCode("");
+              setDiscountInput("");
               if (payload.id) setLastOrderId(payload.id);
               setStatus(
-                "Order saved. Save your order ID for tracking. Card payments will activate after Stripe or PayPal is connected.",
+                "Order saved. Inventory was updated for stocked items. Save your order ID for tracking. Card payments will activate after Stripe or PayPal is connected.",
               );
             } catch {
               setStatus("Could not reach the order service. Check your connection and try again.");
@@ -98,6 +199,48 @@ export default function CheckoutPage() {
               <input name="postalCode" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="ZIP code" required />
               <input name="phone" className="rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Phone number" required />
             </div>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-brand-navy">Discount code</h2>
+            <p className="mt-1 text-xs text-slate-500">Create codes in Admin → Discount Manager, then apply here. Totals update to match the server.</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                value={discountInput}
+                onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
+                placeholder="SAVE10"
+                className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm uppercase"
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                disabled={previewLoading || detailedItems.length === 0}
+                onClick={() => {
+                  setAppliedDiscountCode(discountInput.trim());
+                }}
+                className="rounded-md border border-brand-navy px-4 py-2 text-sm font-semibold text-brand-navy hover:bg-slate-50 disabled:opacity-50"
+              >
+                {previewLoading ? "Applying…" : "Apply"}
+              </button>
+              <button
+                type="button"
+                disabled={previewLoading}
+                onClick={() => {
+                  setDiscountInput("");
+                  setAppliedDiscountCode("");
+                  setPreviewError("");
+                  void fetchPreview("");
+                }}
+                className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              >
+                Clear
+              </button>
+            </div>
+            {previewError && <p className="text-sm text-red-600">{previewError}</p>}
+            {appliedDiscountCode && preview && !previewError && (
+              <p className="text-xs text-emerald-700">Code <strong>{appliedDiscountCode}</strong> applied.</p>
+            )}
           </section>
 
           <section>
@@ -142,10 +285,33 @@ export default function CheckoutPage() {
             ))}
           </div>
           <div className="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm">
-            <div className="flex justify-between"><span>Subtotal</span><span>${subtotal}</span></div>
-            <div className="flex justify-between"><span>Shipping</span><span>${shipping}</span></div>
-            <div className="flex justify-between"><span>Tax</span><span>${tax}</span></div>
-            <div className="flex justify-between text-base font-semibold text-brand-navy"><span>Total</span><span>${total}</span></div>
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>${display.sub.toFixed(2)}</span>
+            </div>
+            {display.discount > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <span>Discount{preview?.discountCode ? ` (${preview.discountCode})` : ""}</span>
+                <span>-${display.discount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-slate-600">
+              <span>After discount</span>
+              <span>${display.afterDiscount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Shipping</span>
+              <span>${display.ship.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Tax</span>
+              <span>${display.tax.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-base font-semibold text-brand-navy">
+              <span>Total</span>
+              <span>${display.total.toFixed(2)}</span>
+            </div>
+            {preview && <p className="pt-2 text-xs text-slate-500">Totals verified by checkout preview.</p>}
           </div>
           <div className="mt-5 flex items-center gap-2">
             <Image src="/assets/payment-visa.svg" alt="Visa" width={72} height={24} />

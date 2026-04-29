@@ -1,3 +1,5 @@
+import { computeCheckoutTotals } from "./worker-order-pricing";
+
 type Env = {
   ASSETS: Fetcher;
   DB?: D1Database;
@@ -168,6 +170,15 @@ async function handleNewsletter(request: Request, env: Env) {
   return json({ message: "Subscription saved." }, { status: 201 });
 }
 
+async function handleCheckoutPreview(request: Request, env: Env) {
+  const db = requireDb(env);
+  const body = await getBody(request);
+  if (!body) return json({ error: "Invalid JSON payload." }, { status: 400 });
+  const result = await computeCheckoutTotals(db, body);
+  if (!result.ok) return json({ error: result.error }, { status: result.status });
+  return json(result.data);
+}
+
 async function handleOrders(request: Request, env: Env) {
   const db = requireDb(env);
   const body = await getBody(request);
@@ -181,13 +192,17 @@ async function handleOrders(request: Request, env: Env) {
     sanitizeText(body.customerName, 160) || [first, last].filter(Boolean).join(" ").trim() || "Guest Customer";
 
   const items = Array.isArray(body.items) ? body.items : [];
-  const total = Number(body.total);
-
-  if (!customerEmail || items.length === 0 || Number.isNaN(total) || total <= 0) {
-    return json({ error: "Customer email, order items, and total are required." }, { status: 400 });
+  if (!customerEmail || items.length === 0) {
+    return json({ error: "Customer email and order items are required." }, { status: 400 });
   }
 
-  const shipping = customerBlock
+  const priced = await computeCheckoutTotals(db, body);
+  if (!priced.ok) {
+    return json({ error: priced.error }, { status: priced.status });
+  }
+  const { lines, merchandiseSubtotal, discountCode, discountAmount, taxableSubtotal, shipping, tax, total } = priced.data;
+
+  const shippingAddress = customerBlock
     ? {
         firstName: first,
         lastName: last,
@@ -199,17 +214,98 @@ async function handleOrders(request: Request, env: Env) {
       }
     : {};
   const phone = sanitizeText(customerBlock?.phone, 60) || null;
-  const shippingJson = JSON.stringify(shipping).slice(0, 8000);
+
+  const pricingSummary = {
+    merchandiseSubtotal,
+    discountCode,
+    discountAmount,
+    taxableSubtotal,
+    shipping,
+    tax,
+    total,
+  };
+  const shippingPayload = { ...shippingAddress, pricing: pricingSummary };
+  const shippingJson = JSON.stringify(shippingPayload).slice(0, 8000);
+
+  const itemsForDb = lines.map((line) => ({
+    productId: line.productId,
+    name: line.name,
+    quantity: line.quantity,
+    unitPrice: line.unitPrice,
+    lineTotal: line.lineTotal,
+  }));
+
+  const decremented: Array<{ productId: string; quantity: number }> = [];
+  for (const line of lines) {
+    if (!line.managedInventory) continue;
+    const run = await db
+      .prepare(
+        "UPDATE products_admin SET inventory = inventory - ?, updated_at = datetime('now') WHERE id = ? AND inventory >= ?",
+      )
+      .bind(line.quantity, line.productId, line.quantity)
+      .run();
+    const changes = Number(run.meta?.changes ?? 0);
+    if (changes !== 1) {
+      for (const prev of decremented) {
+        await db
+          .prepare("UPDATE products_admin SET inventory = inventory + ?, updated_at = datetime('now') WHERE id = ?")
+          .bind(prev.quantity, prev.productId)
+          .run();
+      }
+      return json(
+        { error: `Stock changed while placing order for "${line.name}". Please refresh and try again.` },
+        { status: 409 },
+      );
+    }
+    decremented.push({ productId: line.productId, quantity: line.quantity });
+  }
 
   const id = crypto.randomUUID();
-  await db
-    .prepare(
-      "INSERT INTO orders (id, customer_email, customer_name, phone, items_json, shipping_json, total, status, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending_payment', 'not_configured', datetime('now'))",
-    )
-    .bind(id, customerEmail, customerName, phone, JSON.stringify(items).slice(0, 8000), shippingJson, total)
-    .run();
+  const itemsJson = JSON.stringify(itemsForDb).slice(0, 8000);
 
-  return json({ id, paymentStatus: "pending_payment" }, { status: 201 });
+  try {
+    await db
+      .prepare(
+        "INSERT INTO orders (id, customer_email, customer_name, phone, items_json, shipping_json, total, discount_code, discount_amount, subtotal_items, shipping_amount, tax_amount, status, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_payment', 'not_configured', datetime('now'))",
+      )
+      .bind(
+        id,
+        customerEmail,
+        customerName,
+        phone,
+        itemsJson,
+        shippingJson,
+        total,
+        discountCode,
+        discountAmount,
+        merchandiseSubtotal,
+        shipping,
+        tax,
+      )
+      .run();
+  } catch {
+    for (const prev of decremented) {
+      await db
+        .prepare("UPDATE products_admin SET inventory = inventory + ?, updated_at = datetime('now') WHERE id = ?")
+        .bind(prev.quantity, prev.productId)
+        .run();
+    }
+    return json({ error: "Unable to save order. If this persists, apply database migration 0005_order_totals.sql." }, { status: 500 });
+  }
+
+  return json(
+    {
+      id,
+      paymentStatus: "pending_payment",
+      total,
+      discountCode,
+      discountAmount,
+      merchandiseSubtotal,
+      shipping,
+      tax,
+    },
+    { status: 201 },
+  );
 }
 
 async function handleOrderTrack(request: Request, env: Env) {
@@ -360,7 +456,7 @@ async function handleAdmin(request: Request, env: Env) {
   if (path === "/api/admin/customers") {
     const { results } = await db
       .prepare(
-        "SELECT customer_email, MAX(customer_name) AS customer_name, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS lifetime_value, MAX(created_at) AS last_order_at FROM orders GROUP BY customer_email ORDER BY last_order_at DESC LIMIT 200",
+        "SELECT customer_email, MAX(customer_name) AS customer_name, COUNT(*) AS orders_count, COALESCE(SUM(total), 0) AS lifetime_value, MAX(created_at) AS last_order_at FROM orders GROUP BY customer_email ORDER BY last_order_at DESC LIMIT 200",
       )
       .all();
     return json({ customers: results ?? [] });
@@ -450,6 +546,7 @@ async function handleApi(request: Request, env: Env) {
     if (url.pathname === "/api/contact" && request.method === "POST") return await handleContact(request, env);
     if (url.pathname === "/api/newsletter" && request.method === "POST") return await handleNewsletter(request, env);
     if (url.pathname === "/api/orders/track" && request.method === "GET") return await handleOrderTrack(request, env);
+    if (url.pathname === "/api/checkout/preview" && request.method === "POST") return await handleCheckoutPreview(request, env);
     if (url.pathname === "/api/orders" && request.method === "POST") return await handleOrders(request, env);
     if (url.pathname === "/api/checkout/status" && request.method === "GET") return handleCheckoutSession();
     if (url.pathname === "/api/checkout/session" && request.method === "POST") return handleCheckoutSession();
