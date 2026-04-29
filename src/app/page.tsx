@@ -25,7 +25,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/about-us"
-              className="inline-block origin-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-white/10 hover:text-brand-teal"
+              className="inline-block origin-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white transition-[transform,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-white/10"
             >
               Learn More
             </Link>

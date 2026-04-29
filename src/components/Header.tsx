@@ -112,13 +112,13 @@ export function Header() {
           </Link>
           <Link
             href="/account"
-            className="inline-flex min-w-0 origin-center items-center justify-center rounded-md bg-brand-navy px-4 py-2 text-center text-sm font-medium text-white transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-brand-slate hover:text-brand-teal"
+            className="inline-flex min-w-0 origin-center items-center justify-center rounded-md bg-brand-navy px-4 py-2 text-center text-sm font-medium text-white transition-[transform,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-brand-slate"
           >
             Account
           </Link>
           <Link
             href="/login"
-            className="col-span-2 inline-flex min-w-0 origin-center items-center justify-center rounded-md border border-brand-navy px-4 py-2 text-center text-sm font-medium text-brand-navy transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal sm:col-span-1"
+            className="col-span-2 inline-flex min-w-0 origin-center items-center justify-center rounded-md border border-brand-navy px-4 py-2 text-center text-sm font-medium text-brand-navy transition-[transform,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 sm:col-span-1"
           >
             Login
           </Link>
