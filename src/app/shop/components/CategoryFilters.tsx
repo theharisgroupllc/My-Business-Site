@@ -62,7 +62,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="mt-2 inline-flex min-h-[44px] w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-[color,background-color,border-color,transform] duration-150 ease-out hover:scale-[1.02] hover:border-brand-teal hover:bg-slate-100 hover:text-brand-teal"
+        className="mt-2 inline-flex min-h-[44px] w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-[color,background-color,border-color] duration-150 ease-out md:transition-[color,background-color,border-color,transform] md:hover:scale-[1.02] hover:border-brand-teal hover:bg-slate-100 hover:text-brand-teal"
         onClick={() => setOpenId(isOpen ? null : id)}
       >
         <span className="truncate">{selectedLabel}</span>
@@ -84,7 +84,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
             aria-labelledby={`${id}-btn`}
             className={`space-y-1 overflow-x-hidden ${
               showScrollIndicator
-                ? "filter-dropdown-list max-h-40 overflow-y-scroll overscroll-contain [scrollbar-gutter:stable] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
+                ? "filter-dropdown-list category-scroll-hint max-h-40 overflow-y-scroll overscroll-contain [scrollbar-gutter:stable] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
                 : "max-h-64 overflow-y-auto overscroll-contain [touch-action:pan-y]"
             }`}
             onTouchMove={(event) => {
@@ -97,7 +97,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
                   type="button"
                   role="option"
                   aria-selected={option.value === value}
-                  className={`inline-block min-h-[40px] w-full origin-center rounded px-2 py-2 text-left text-sm transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.03] hover:bg-slate-100 hover:text-brand-teal ${
+                  className={`inline-block min-h-[40px] w-full origin-center rounded px-2 py-2 text-left text-sm transition-[color,background-color] duration-150 ease-out md:transition-[transform,color,background-color] md:hover:scale-[1.03] hover:bg-slate-100 hover:text-brand-teal ${
                     option.value === value ? "bg-slate-100 text-brand-teal" : "text-slate-700"
                   }`}
                   onClick={() => {

@@ -46,6 +46,29 @@ a {
   border-radius: 9999px;
 }
 
+/* Custom always-visible scroll hint rail for category dropdown on mobile/desktop. */
+.category-scroll-rail {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  width: 4px;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  pointer-events: none;
+}
+
+.category-scroll-rail::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0.25rem;
+  width: 100%;
+  height: 34%;
+  border-radius: 9999px;
+  background: #94a3b8;
+}
+
 /* Prevent iOS Safari auto-zoom on focused form fields (requires >=16px). */
 @media (max-width: 768px) {
   input,
