@@ -52,7 +52,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
   }, [isOpen, setOpenId]);
 
   return (
-    <div ref={wrapperRef} className="relative hidden md:block">
+    <div ref={wrapperRef} className="relative">
       <label htmlFor={`${id}-btn`} className="text-xs font-medium text-slate-600">
         {label}
       </label>
@@ -61,7 +61,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="mt-2 inline-flex w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-[color,background-color,border-color,transform] duration-150 ease-out hover:scale-[1.02] hover:border-brand-teal hover:bg-slate-100 hover:text-brand-teal"
+        className="mt-2 inline-flex min-h-[44px] w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-[color,background-color,border-color,transform] duration-150 ease-out hover:scale-[1.02] hover:border-brand-teal hover:bg-slate-100 hover:text-brand-teal"
         onClick={() => setOpenId(isOpen ? null : id)}
       >
         <span className="truncate">{selectedLabel}</span>
@@ -85,7 +85,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
                   type="button"
                   role="option"
                   aria-selected={option.value === value}
-                  className={`inline-block w-full origin-center rounded px-2 py-1 text-left text-xs transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.03] hover:bg-slate-100 hover:text-brand-teal ${
+                  className={`inline-block min-h-[40px] w-full origin-center rounded px-2 py-2 text-left text-sm transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.03] hover:bg-slate-100 hover:text-brand-teal ${
                     option.value === value ? "bg-slate-100 text-brand-teal" : "text-slate-700"
                   }`}
                   onClick={() => {
@@ -150,19 +150,6 @@ export function CategoryFilters({
           openId={openId}
           setOpenId={setOpenId}
         />
-        <select
-          id="category-filter"
-          value={selectedCategory}
-          onChange={(event) => onCategoryChange(event.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:hidden"
-        >
-          <option value="all">All Categories</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -175,16 +162,6 @@ export function CategoryFilters({
           openId={openId}
           setOpenId={setOpenId}
         />
-        <select
-          id="price-filter"
-          value={selectedPrice}
-          onChange={(event) => onPriceChange(event.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:hidden"
-        >
-          <option value="all">All prices</option>
-          <option value="budget">${minPrice} - ${(minPrice + maxPrice) / 2}</option>
-          <option value="premium">${Math.floor((minPrice + maxPrice) / 2)} - ${maxPrice}</option>
-        </select>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -197,17 +174,6 @@ export function CategoryFilters({
           openId={openId}
           setOpenId={setOpenId}
         />
-        <select
-          id="rating-filter"
-          value={selectedRating}
-          onChange={(event) => onRatingChange(event.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:hidden"
-        >
-          <option value="0">All ratings</option>
-          <option value="4">4.0 and above</option>
-          <option value="4.3">4.3 and above</option>
-          <option value="4.5">4.5 and above</option>
-        </select>
       </div>
     </aside>
   );
