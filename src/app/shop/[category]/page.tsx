@@ -13,7 +13,9 @@ export function generateStaticParams() {
 }
 
 export function generateMetadata({ params }: CategoryPageProps): Metadata {
-  const category = getCategoryById(params.category);
+  const raw = typeof params?.category === "string" ? params.category : "";
+  const categoryId = raw.replace(/\/+$/, "").trim();
+  const category = getCategoryById(categoryId);
   if (!category) {
     return { title: "Shop | Everon Global Trades LLC" };
   }
@@ -24,7 +26,10 @@ export function generateMetadata({ params }: CategoryPageProps): Metadata {
 }
 
 export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryById(params.category);
+  // Normalize param because some navigations may include/exclude a trailing slash.
+  const raw = typeof params?.category === "string" ? params.category : "";
+  const categoryId = raw.replace(/\/+$/, "").trim();
+  const category = getCategoryById(categoryId);
   if (!category) {
     notFound();
   }
