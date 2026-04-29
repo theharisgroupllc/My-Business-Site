@@ -29,6 +29,9 @@ export function Header() {
     };
   }, [shopOpen]);
 
+  const navItemClass =
+    "inline-block origin-center text-sm font-medium text-slate-700 transition-transform duration-150 ease-out will-change-transform hover:scale-[1.06] hover:text-brand-teal";
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center md:px-6">
@@ -36,8 +39,8 @@ export function Header() {
           <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={280} height={46} className="h-10 max-w-full w-auto" priority />
         </Link>
 
-        <nav className="flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium sm:flex-1 md:w-auto md:flex-none md:justify-center md:gap-x-5 lg:absolute lg:left-1/2 lg:w-auto lg:-translate-x-1/2 lg:gap-x-7">
-          <Link href="/" className="text-slate-700 hover:text-brand-teal">
+        <nav className="flex w-full min-w-0 flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium sm:flex-1 md:w-auto md:flex-none md:justify-center lg:absolute lg:left-[46%] lg:w-auto lg:-translate-x-1/2 lg:gap-x-6">
+          <Link href="/" className={navItemClass}>
             Home
           </Link>
           <div ref={shopRef} className="relative">
@@ -46,9 +49,19 @@ export function Header() {
               aria-expanded={shopOpen}
               aria-haspopup="true"
               onClick={() => setShopOpen((o) => !o)}
-              className="cursor-pointer list-none border-0 bg-transparent p-0 text-sm font-medium text-slate-700 hover:text-brand-teal"
+              className={`${navItemClass} inline-flex cursor-pointer list-none items-center gap-1 border-0 bg-transparent p-0`}
             >
               Shop
+              <svg
+                className={`h-3.5 w-3.5 shrink-0 text-current transition-transform duration-150 ${shopOpen ? "rotate-180" : ""}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.2}
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
             {shopOpen && (
               <div className="absolute left-0 mt-3 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg sm:grid-cols-2">
@@ -65,13 +78,13 @@ export function Header() {
               </div>
             )}
           </div>
-          <Link href="/about-us" className="text-slate-700 hover:text-brand-teal">
+          <Link href="/about-us" className={navItemClass}>
             About Us
           </Link>
-          <Link href="/contact-us" className="text-slate-700 hover:text-brand-teal">
+          <Link href="/contact-us" className={navItemClass}>
             Contact Us
           </Link>
-          <Link href="/track-order" className="text-slate-700 hover:text-brand-teal">
+          <Link href="/track-order" className={navItemClass}>
             Track Order
           </Link>
         </nav>
