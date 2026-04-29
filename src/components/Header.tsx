@@ -34,62 +34,71 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center md:px-6">
-        <Link href="/" className="inline-flex max-w-full items-center self-start">
-          <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={280} height={46} className="h-10 max-w-full w-auto" priority />
-        </Link>
-
-        <nav className="flex w-full min-w-0 flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium sm:flex-1 md:w-auto md:flex-none md:justify-center lg:absolute lg:left-[46%] lg:w-auto lg:-translate-x-1/2 lg:gap-x-6">
-          <Link href="/" className={navItemClass}>
-            Home
+      <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center md:px-6 lg:flex-nowrap lg:items-center lg:gap-6">
+        <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-x-6 sm:flex-1 lg:w-auto lg:max-w-none lg:flex-1 lg:flex-nowrap">
+          <Link href="/" className="inline-flex max-w-full shrink-0 items-center self-start sm:self-center">
+            <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={280} height={46} className="h-10 max-w-full w-auto" priority />
           </Link>
-          <div ref={shopRef} className="relative">
-            <button
-              type="button"
-              aria-expanded={shopOpen}
-              aria-haspopup="true"
-              onClick={() => setShopOpen((o) => !o)}
-              className={`${navItemClass} inline-flex cursor-pointer list-none items-center gap-1 border-0 bg-transparent p-0`}
+
+          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium lg:flex-none lg:flex-nowrap">
+            <Link href="/" className={navItemClass}>
+              Home
+            </Link>
+            <div
+              ref={shopRef}
+              className="relative"
+              onMouseEnter={() => setShopOpen(true)}
+              onMouseLeave={() => setShopOpen(false)}
             >
-              Shop
-              <svg
-                className={`h-3.5 w-3.5 shrink-0 text-current transition-transform duration-150 ${shopOpen ? "rotate-180" : ""}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.2}
-                aria-hidden
+              <button
+                type="button"
+                aria-expanded={shopOpen}
+                aria-haspopup="true"
+                onClick={() => setShopOpen((o) => !o)}
+                className={`${navItemClass} inline-flex cursor-pointer list-none items-center gap-1 border-0 bg-transparent p-0`}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {shopOpen && (
-              <div className="absolute left-0 mt-3 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg sm:grid-cols-2">
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/shop/${category.id}`}
-                    className="rounded px-2 py-1 text-xs text-slate-700 hover:bg-slate-100"
-                    onClick={() => setShopOpen(false)}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-          <Link href="/about-us" className={navItemClass}>
-            About Us
-          </Link>
-          <Link href="/contact-us" className={navItemClass}>
-            Contact Us
-          </Link>
-          <Link href="/track-order" className={navItemClass}>
-            Track Order
-          </Link>
-        </nav>
+                Shop
+                <svg
+                  className={`h-3.5 w-3.5 shrink-0 text-current transition-transform duration-150 ${shopOpen ? "rotate-180" : ""}`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.2}
+                  aria-hidden
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {shopOpen && (
+                <div className="absolute left-0 top-full z-50 pt-1">
+                  <div className="grid w-[min(20rem,calc(100vw-2rem))] grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg sm:grid-cols-2">
+                    {categories.map((category) => (
+                      <Link
+                        key={category.id}
+                        href={`/shop/${category.id}`}
+                        className="rounded px-2 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                        onClick={() => setShopOpen(false)}
+                      >
+                        {category.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <Link href="/about-us" className={navItemClass}>
+              About Us
+            </Link>
+            <Link href="/contact-us" className={navItemClass}>
+              Contact Us
+            </Link>
+            <Link href="/track-order" className={navItemClass}>
+              Track Order
+            </Link>
+          </nav>
+        </div>
 
-        <div className="grid w-full grid-cols-2 items-stretch gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 lg:ml-auto lg:w-auto lg:flex-nowrap">
+        <div className="grid w-full grid-cols-2 items-stretch gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 lg:ml-auto lg:w-auto lg:flex-nowrap lg:shrink-0">
           <HeaderSearch />
           <Link href="/cart" aria-label="Cart" className="inline-flex min-w-0 items-center justify-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:border-brand-teal hover:text-brand-teal">
             <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
