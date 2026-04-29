@@ -374,8 +374,6 @@ export function CategoryFilters({
           onChange={onRatingChange}
           openId={openId}
           setOpenId={setOpenId}
-          showScrollIndicator
-          scrollHintText="Swipe down for more"
         />
       </div>
     </aside>
