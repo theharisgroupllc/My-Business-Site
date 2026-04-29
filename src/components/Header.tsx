@@ -30,7 +30,7 @@ export function Header() {
   }, [shopOpen]);
 
   const navItemClass =
-    "inline-block origin-center text-sm font-medium text-slate-700 transition-transform duration-150 ease-out will-change-transform hover:scale-[1.06] hover:text-brand-teal";
+    "inline-block origin-center rounded-md px-2 py-1 text-sm font-medium text-slate-700 transition-[transform,color,background-color] duration-150 ease-out will-change-transform hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
