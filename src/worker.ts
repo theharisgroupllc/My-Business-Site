@@ -346,24 +346,52 @@ async function handleHomeBestSellers(env: Env) {
   return json({ productIds: ids, products: list, database: true });
 }
 
+function parsePriceQueryParam(raw: string | null): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 1_000_000_000) return null;
+  return n;
+}
+
 async function handleProducts(request: Request, env: Env) {
   if (!env.DB) return json({ products: [], database: false });
   const url = new URL(request.url);
   const categoryFilter = sanitizeText(url.searchParams.get("category"), 120);
-  if (categoryFilter) {
-    const { results } = await env.DB
-      .prepare(
-        "SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE status = 'active' AND category_id = ? ORDER BY updated_at DESC LIMIT 300",
-      )
-      .bind(categoryFilter)
-      .all();
-    return json({ products: results ?? [], database: true });
+  let minPrice = parsePriceQueryParam(url.searchParams.get("minPrice"));
+  let maxPrice = parsePriceQueryParam(url.searchParams.get("maxPrice"));
+  const maxExclusive = parsePriceQueryParam(url.searchParams.get("maxExclusive"));
+  const minExclusive = parsePriceQueryParam(url.searchParams.get("minExclusive"));
+  if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+    const t = minPrice;
+    minPrice = maxPrice;
+    maxPrice = t;
   }
-  const { results } = await env.DB
-    .prepare(
-      "SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE status = 'active' ORDER BY updated_at DESC LIMIT 300",
-    )
-    .all();
+
+  const conditions = ["status = 'active'"];
+  const binds: unknown[] = [];
+  if (categoryFilter) {
+    conditions.push("category_id = ?");
+    binds.push(categoryFilter);
+  }
+  if (minExclusive != null) {
+    conditions.push("price > ?");
+    binds.push(minExclusive);
+  } else if (minPrice != null) {
+    conditions.push("price >= ?");
+    binds.push(minPrice);
+  }
+  if (maxExclusive != null) {
+    conditions.push("price < ?");
+    binds.push(maxExclusive);
+  } else if (maxPrice != null) {
+    conditions.push("price <= ?");
+    binds.push(maxPrice);
+  }
+
+  const whereSql = conditions.join(" AND ");
+  const sql = `SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE ${whereSql} ORDER BY updated_at DESC LIMIT 300`;
+  const stmt = env.DB.prepare(sql);
+  const { results } = binds.length > 0 ? await stmt.bind(...binds).all() : await stmt.all();
   return json({ products: results ?? [], database: true });
 }
 

@@ -2,15 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import type { PricePreset } from "./priceFilterUtils";
+
+export type { PricePreset };
+
 type CategoryFiltersProps = {
   selectedCategory: string;
   categories: Array<{ id: string; name: string }>;
-  minPrice: number;
-  maxPrice: number;
-  selectedPrice: string;
   selectedRating: string;
+  pricePreset: PricePreset;
+  priceMinInput: string;
+  priceMaxInput: string;
   onCategoryChange: (value: string) => void;
-  onPriceChange: (value: string) => void;
+  onPricePresetChange: (preset: PricePreset) => void;
+  onPriceMinInputChange: (value: string) => void;
+  onPriceMaxInputChange: (value: string) => void;
+  onApplyCustomPriceRange: () => void;
   onRatingChange: (value: string) => void;
 };
 
@@ -28,9 +35,20 @@ type DesktopDropdownProps = {
   openId: string | null;
   setOpenId: (id: string | null) => void;
   showScrollIndicator?: boolean;
+  scrollHintText?: string;
 };
 
-function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenId, showScrollIndicator = false }: DesktopDropdownProps) {
+function DesktopDropdown({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+  openId,
+  setOpenId,
+  showScrollIndicator = false,
+  scrollHintText = "Swipe down for more",
+}: DesktopDropdownProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const isOpen = openId === id;
@@ -138,7 +156,7 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
           </ul>
           {showScrollIndicator && showMoreHint && (
             <div className="pointer-events-none absolute inset-x-2 bottom-2 rounded bg-white/95 py-1 text-center text-[11px] font-medium text-slate-500">
-              Swipe up for more categories
+              {scrollHintText}
             </div>
           )}
         </div>
@@ -147,15 +165,109 @@ function DesktopDropdown({ id, label, value, options, onChange, openId, setOpenI
   );
 }
 
+function PriceRangeSection({
+  pricePreset,
+  priceMinInput,
+  priceMaxInput,
+  onPricePresetChange,
+  onPriceMinInputChange,
+  onPriceMaxInputChange,
+  onApplyCustomPriceRange,
+}: {
+  pricePreset: PricePreset;
+  priceMinInput: string;
+  priceMaxInput: string;
+  onPricePresetChange: (preset: PricePreset) => void;
+  onPriceMinInputChange: (value: string) => void;
+  onPriceMaxInputChange: (value: string) => void;
+  onApplyCustomPriceRange: () => void;
+}) {
+  const presetBtn = (preset: PricePreset, label: string) => (
+    <button
+      key={preset}
+      type="button"
+      className={`w-full rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors md:py-2 ${
+        pricePreset === preset
+          ? "border-brand-teal bg-brand-teal/10 text-brand-navy"
+          : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+      }`}
+      onClick={() => onPricePresetChange(preset)}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-slate-600">Price Range</p>
+      <button
+        type="button"
+        className={`w-full rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors md:py-2 ${
+          pricePreset === "all"
+            ? "border-brand-teal bg-brand-teal/10 text-brand-navy"
+            : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+        }`}
+        onClick={() => onPricePresetChange("all")}
+      >
+        All Prices
+      </button>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label htmlFor="filter-price-min" className="sr-only">
+            Minimum price
+          </label>
+          <input
+            id="filter-price-min"
+            inputMode="decimal"
+            placeholder="Min $"
+            value={priceMinInput}
+            onChange={(e) => onPriceMinInputChange(e.target.value)}
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+        <div>
+          <label htmlFor="filter-price-max" className="sr-only">
+            Maximum price
+          </label>
+          <input
+            id="filter-price-max"
+            inputMode="decimal"
+            placeholder="Max $"
+            value={priceMaxInput}
+            onChange={(e) => onPriceMaxInputChange(e.target.value)}
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+      </div>
+      <button
+        type="button"
+        className="w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate md:py-2"
+        onClick={onApplyCustomPriceRange}
+      >
+        Apply custom range
+      </button>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {presetBtn("under50", "Under $50")}
+        {presetBtn("51_100", "$51 - $100")}
+        {presetBtn("101_150", "$101 - $150")}
+        {presetBtn("above150", "Above $150")}
+      </div>
+    </div>
+  );
+}
+
 export function CategoryFilters({
   selectedCategory,
   categories,
-  minPrice,
-  maxPrice,
-  selectedPrice,
   selectedRating,
+  pricePreset,
+  priceMinInput,
+  priceMaxInput,
   onCategoryChange,
-  onPriceChange,
+  onPricePresetChange,
+  onPriceMinInputChange,
+  onPriceMaxInputChange,
+  onApplyCustomPriceRange,
   onRatingChange,
 }: CategoryFiltersProps) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -192,14 +304,6 @@ export function CategoryFilters({
     () => [{ value: "all", label: "All Categories" }, ...categories.map((category) => ({ value: category.id, label: category.name }))],
     [categories],
   );
-  const priceOptions = useMemo<DropdownOption[]>(
-    () => [
-      { value: "all", label: "All prices" },
-      { value: "budget", label: `$${minPrice} - $${(minPrice + maxPrice) / 2}` },
-      { value: "premium", label: `$${Math.floor((minPrice + maxPrice) / 2)} - $${maxPrice}` },
-    ],
-    [minPrice, maxPrice],
-  );
   const ratingOptions: DropdownOption[] = [
     { value: "0", label: "All ratings" },
     { value: "4", label: "4.0 and above" },
@@ -221,18 +325,19 @@ export function CategoryFilters({
           openId={openId}
           setOpenId={setOpenId}
           showScrollIndicator
+          scrollHintText="Swipe down for more"
         />
       </div>
 
-      <div className="mt-4 space-y-2">
-        <DesktopDropdown
-          id="price-filter"
-          label="Price Range"
-          value={selectedPrice}
-          options={priceOptions}
-          onChange={onPriceChange}
-          openId={openId}
-          setOpenId={setOpenId}
+      <div className="mt-4 border-t border-slate-100 pt-4">
+        <PriceRangeSection
+          pricePreset={pricePreset}
+          priceMinInput={priceMinInput}
+          priceMaxInput={priceMaxInput}
+          onPricePresetChange={onPricePresetChange}
+          onPriceMinInputChange={onPriceMinInputChange}
+          onPriceMaxInputChange={onPriceMaxInputChange}
+          onApplyCustomPriceRange={onApplyCustomPriceRange}
         />
       </div>
 
@@ -245,6 +350,8 @@ export function CategoryFilters({
           onChange={onRatingChange}
           openId={openId}
           setOpenId={setOpenId}
+          showScrollIndicator
+          scrollHintText="Swipe down for more"
         />
       </div>
     </aside>

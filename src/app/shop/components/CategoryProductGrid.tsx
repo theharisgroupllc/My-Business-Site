@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Product, categories as allCategories, productFromAdminRow, products as allProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilters } from "./CategoryFilters";
+import type { PricePreset } from "./priceFilterUtils";
+import { appendPriceSearchParams, productPassesPriceFilter } from "./priceFilterUtils";
 
 type CategoryProductGridProps = {
   products?: Product[];
@@ -16,12 +18,19 @@ type ProductsResponse = {
 
 export function CategoryProductGrid({ products: _products, categoryId: _categoryId }: CategoryProductGridProps) {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedPrice, setSelectedPrice] = useState("all");
+  const [pricePreset, setPricePreset] = useState<PricePreset>("all");
+  const [priceMinInput, setPriceMinInput] = useState("");
+  const [priceMaxInput, setPriceMaxInput] = useState("");
   const [selectedRating, setSelectedRating] = useState("0");
   const [liveProducts, setLiveProducts] = useState<Product[]>([]);
 
-  useEffect(() => {
-    fetch("/api/products")
+  const fetchLiveProducts = useCallback(() => {
+    const params = new URLSearchParams();
+    if (selectedCategory !== "all") params.set("category", selectedCategory);
+    appendPriceSearchParams(params, pricePreset, priceMinInput, priceMaxInput);
+    const qs = params.toString();
+    const url = qs ? `/api/products?${qs}` : "/api/products";
+    fetch(url)
       .then(async (response) => (response.ok ? ((await response.json()) as ProductsResponse) : { products: [] }))
       .then((data) => {
         const rows = data.products ?? [];
@@ -42,7 +51,11 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
         );
       })
       .catch(() => setLiveProducts([]));
-  }, []);
+  }, [selectedCategory, pricePreset, priceMinInput, priceMaxInput]);
+
+  useEffect(() => {
+    fetchLiveProducts();
+  }, [fetchLiveProducts]);
 
   const allCombinedProducts = useMemo(() => {
     const merged = [...liveProducts];
@@ -58,32 +71,32 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
     [selectedCategory, allCombinedProducts],
   );
 
-  const minPrice = categoryScopedProducts.length > 0 ? Math.floor(Math.min(...categoryScopedProducts.map((item) => item.price))) : 0;
-  const maxPrice = categoryScopedProducts.length > 0 ? Math.ceil(Math.max(...categoryScopedProducts.map((item) => item.price))) : 0;
-  const midPrice = (minPrice + maxPrice) / 2;
-
   const filteredProducts = useMemo(() => {
     return categoryScopedProducts.filter((item) => {
       const passesRating = item.rating >= Number(selectedRating);
-      const passesPrice =
-        selectedPrice === "all" ||
-        (selectedPrice === "budget" && item.price <= midPrice) ||
-        (selectedPrice === "premium" && item.price >= midPrice);
+      const passesPrice = productPassesPriceFilter(item.price, pricePreset, priceMinInput, priceMaxInput);
       return passesRating && passesPrice;
     });
-  }, [categoryScopedProducts, selectedPrice, selectedRating, midPrice]);
+  }, [categoryScopedProducts, selectedRating, pricePreset, priceMinInput, priceMaxInput]);
+
+  const handleApplyCustomPriceRange = () => {
+    setPricePreset("custom");
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
       <CategoryFilters
         selectedCategory={selectedCategory}
         categories={allCategories}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        selectedPrice={selectedPrice}
         selectedRating={selectedRating}
+        pricePreset={pricePreset}
+        priceMinInput={priceMinInput}
+        priceMaxInput={priceMaxInput}
         onCategoryChange={setSelectedCategory}
-        onPriceChange={setSelectedPrice}
+        onPricePresetChange={setPricePreset}
+        onPriceMinInputChange={setPriceMinInput}
+        onPriceMaxInputChange={setPriceMaxInput}
+        onApplyCustomPriceRange={handleApplyCustomPriceRange}
         onRatingChange={setSelectedRating}
       />
 
