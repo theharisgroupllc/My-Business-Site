@@ -186,8 +186,7 @@ function PriceRangeSection({
   onPriceMaxInputChange: (value: string) => void;
   onApplyCustomPriceRange: () => void;
 }) {
-  /** Custom min/max + Apply only when "All prices" or already in custom mode; quick presets turn this off. */
-  const customEnabled = pricePreset === "all" || pricePreset === "custom";
+  const showCustomFields = pricePreset === "custom";
 
   const priceBandOptions = useMemo<DropdownOption[]>(
     () => [
@@ -210,10 +209,8 @@ function PriceRangeSection({
       return;
     }
     onPricePresetChange(next);
-    if (next !== "all") {
-      onPriceMinInputChange("");
-      onPriceMaxInputChange("");
-    }
+    onPriceMinInputChange("");
+    onPriceMaxInputChange("");
   };
 
   return (
@@ -229,47 +226,53 @@ function PriceRangeSection({
         showScrollIndicator
         scrollHintText="Swipe down for more"
       />
-      <p className={`text-[11px] leading-snug ${customEnabled ? "text-slate-500" : "text-slate-400"}`}>
-        {customEnabled ? "Enter min/max below, then Apply — or choose a quick band above." : "Clear the quick filter (choose All Prices) to use a custom range."}
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label htmlFor="filter-price-min" className="sr-only">
-            Minimum price
-          </label>
-          <input
-            id="filter-price-min"
-            inputMode="decimal"
-            placeholder="Min $"
-            value={priceMinInput}
-            disabled={!customEnabled}
-            onChange={(e) => onPriceMinInputChange(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="filter-price-max" className="sr-only">
-            Maximum price
-          </label>
-          <input
-            id="filter-price-max"
-            inputMode="decimal"
-            placeholder="Max $"
-            value={priceMaxInput}
-            disabled={!customEnabled}
-            onChange={(e) => onPriceMaxInputChange(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-          />
-        </div>
-      </div>
-      <button
-        type="button"
-        disabled={!customEnabled}
-        className="w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate disabled:cursor-not-allowed disabled:opacity-60 md:py-2"
-        onClick={onApplyCustomPriceRange}
-      >
-        Apply custom range
-      </button>
+      {!showCustomFields ? (
+        <p className="rounded-md border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs leading-relaxed text-slate-600">
+          <span className="font-medium text-slate-700">Custom price filter:</span> select{" "}
+          <span className="font-medium text-brand-navy">Custom range</span> in the list above, then enter your minimum and maximum to see only products in that range.
+        </p>
+      ) : (
+        <>
+          <p className="text-xs leading-relaxed text-slate-600">
+            Enter your minimum and maximum price below, then tap <span className="font-medium text-slate-800">Apply custom range</span> to filter results.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="filter-price-min" className="sr-only">
+                Minimum price
+              </label>
+              <input
+                id="filter-price-min"
+                inputMode="decimal"
+                placeholder="Min $"
+                value={priceMinInput}
+                onChange={(e) => onPriceMinInputChange(e.target.value)}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="filter-price-max" className="sr-only">
+                Maximum price
+              </label>
+              <input
+                id="filter-price-max"
+                inputMode="decimal"
+                placeholder="Max $"
+                value={priceMaxInput}
+                onChange={(e) => onPriceMaxInputChange(e.target.value)}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            className="w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate md:py-2"
+            onClick={onApplyCustomPriceRange}
+          >
+            Apply custom range
+          </button>
+        </>
+      )}
     </div>
   );
 }
