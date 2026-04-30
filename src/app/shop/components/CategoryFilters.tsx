@@ -239,7 +239,7 @@ function PriceRangeExtras({
 
   if (!showCustomFields) {
     return (
-      <p className="rounded-md border border-slate-100/80 bg-slate-50/40 px-3 py-2 text-center text-[11px] font-light italic leading-relaxed tracking-normal text-slate-500 sm:text-left sm:text-xs">
+      <p className="rounded-md border border-slate-100/80 bg-slate-50/40 px-3 py-2 text-left text-[11px] font-light italic leading-relaxed tracking-normal text-slate-500 sm:text-xs">
         Choose &quot;Custom range…&quot; to filter by your price range.
       </p>
     );
@@ -250,7 +250,7 @@ function PriceRangeExtras({
       <p className="text-xs leading-relaxed text-slate-600">
         Enter your minimum and maximum price below, then tap <span className="font-medium text-slate-800">Apply custom range</span> to filter results.
       </p>
-      <div className="mt-2 grid max-w-md grid-cols-2 gap-2 sm:max-w-lg">
+      <div className="mt-2 grid grid-cols-2 gap-2">
         <div>
           <label htmlFor="filter-price-min" className="sr-only">
             Minimum price
@@ -280,7 +280,7 @@ function PriceRangeExtras({
       </div>
       <button
         type="button"
-        className="mt-2 max-w-md rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate sm:max-w-lg md:py-2"
+        className="mt-2 w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate md:py-2"
         onClick={onApplyCustomPriceRange}
       >
         Apply custom range
@@ -366,7 +366,7 @@ export function CategoryFilters({
             scrollHintText="Swipe down for more"
           />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-2">
           <PriceBandDropdown
             pricePreset={pricePreset}
             openId={openId}
@@ -374,6 +374,14 @@ export function CategoryFilters({
             onPricePresetChange={onPricePresetChange}
             onPriceMinInputChange={onPriceMinInputChange}
             onPriceMaxInputChange={onPriceMaxInputChange}
+          />
+          <PriceRangeExtras
+            pricePreset={pricePreset}
+            priceMinInput={priceMinInput}
+            priceMaxInput={priceMaxInput}
+            onPriceMinInputChange={onPriceMinInputChange}
+            onPriceMaxInputChange={onPriceMaxInputChange}
+            onApplyCustomPriceRange={onApplyCustomPriceRange}
           />
         </div>
         <div className="min-w-0">
@@ -387,17 +395,6 @@ export function CategoryFilters({
             setOpenId={setOpenId}
           />
         </div>
-      </div>
-
-      <div className="mt-4 border-t border-slate-100 pt-4">
-        <PriceRangeExtras
-          pricePreset={pricePreset}
-          priceMinInput={priceMinInput}
-          priceMaxInput={priceMaxInput}
-          onPriceMinInputChange={onPriceMinInputChange}
-          onPriceMaxInputChange={onPriceMaxInputChange}
-          onApplyCustomPriceRange={onApplyCustomPriceRange}
-        />
       </div>
     </aside>
   );
