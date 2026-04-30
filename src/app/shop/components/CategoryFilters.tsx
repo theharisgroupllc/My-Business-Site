@@ -227,8 +227,8 @@ function PriceRangeSection({
         scrollHintText="Swipe down for more"
       />
       {!showCustomFields ? (
-        <p className="rounded-md border border-slate-100 bg-slate-50/80 px-3 py-2 text-center text-[11px] font-medium leading-snug tracking-tight text-slate-700 sm:text-left sm:text-xs">
-          Choose Custom Range to Filter by Your Price Range
+        <p className="rounded-md border border-slate-100/80 bg-slate-50/40 px-3 py-2 text-center text-[11px] font-light italic leading-relaxed tracking-normal text-slate-500 sm:text-left sm:text-xs">
+          Choose Custom Range In The List Above To Filter By Your Price Range
         </p>
       ) : (
         <>
