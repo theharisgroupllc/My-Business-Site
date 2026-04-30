@@ -49,6 +49,7 @@ export function ShopLiveItemContent() {
             inventory: row.inventory as number | string | undefined,
             description: row.description != null ? String(row.description) : undefined,
             image_url: row.image_url != null ? String(row.image_url) : undefined,
+            rating: row.rating as number | string | undefined,
           }),
         );
       })

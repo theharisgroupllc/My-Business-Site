@@ -12,7 +12,26 @@ export function Header() {
   const { totalItems } = useCart();
   const pathname = usePathname() ?? "";
   const [shopOpen, setShopOpen] = useState(false);
+  const [canHover, setCanHover] = useState(false);
   const shopRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Mobile/touch devices par `onMouseEnter/onMouseLeave` click ke sath interfere karta hai
+    // (dropdown first tap pe open ho kar wapas close ho jata hai). Is liye hover-only logic
+    // sirf "fine pointer + hover supported" devices par enable karte hain.
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(mql.matches);
+    update();
+
+    // Safari/older browsers compatibility
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", update);
+      return () => mql.removeEventListener("change", update);
+    }
+    mql.addListener(update);
+    return () => mql.removeListener(update);
+  }, []);
 
   useEffect(() => {
     if (!shopOpen) return;
@@ -44,25 +63,34 @@ export function Header() {
   const isContact = pathname.startsWith("/contact-us");
   const isTrack = pathname.startsWith("/track-order");
 
-  const navItemActiveClass = (active: boolean) => (active ? "before:opacity-100 text-brand-teal" : "");
+  const navItemActiveClass = (active: boolean) =>
+    // `!` important so active green wins over base `text-slate-700`.
+    active ? "before:opacity-100 !text-brand-teal scale-[1.06]" : "";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center md:px-6 lg:flex-nowrap lg:items-center lg:gap-6">
-        <div className="flex min-w-0 w-full flex-1 flex-wrap items-center gap-x-6 sm:flex-1 lg:w-auto lg:max-w-none lg:flex-1 lg:flex-nowrap">
+        {/* On mobile, stack logo above nav so nav has enough width to wrap horizontally. */}
+        <div className="flex min-w-0 w-full flex-1 flex-col items-start gap-3 sm:flex-1 sm:flex-wrap sm:flex-row sm:items-center sm:gap-x-6 lg:w-auto lg:max-w-none lg:flex-1 lg:flex-nowrap">
           <Link href="/" className="inline-flex max-w-full shrink-0 items-center self-start sm:self-center">
             <Image src="/assets/logo-everon.svg" alt="Everon Global Trades LLC" width={280} height={46} className="h-10 max-w-full w-auto" priority />
           </Link>
 
-          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium lg:flex-none lg:flex-nowrap">
+          <nav className="flex min-w-0 w-full flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 text-sm font-medium sm:gap-x-6 lg:flex-none lg:flex-nowrap lg:w-auto">
             <Link href="/" className={`${navItemClass} ${navItemActiveClass(isHome)}`}>
               Home
             </Link>
             <div
               ref={shopRef}
               className="relative"
-              onMouseEnter={() => setShopOpen(true)}
-              onMouseLeave={() => setShopOpen(false)}
+              onMouseEnter={() => {
+                if (!canHover) return;
+                setShopOpen(true);
+              }}
+              onMouseLeave={() => {
+                if (!canHover) return;
+                setShopOpen(false);
+              }}
             >
               <button
                 type="button"
@@ -89,7 +117,7 @@ export function Header() {
                     {categories.map((category) => (
                       <Link
                         key={category.id}
-                        href={`/shop/${category.id}`}
+                        href={`/shop/${category.id}/`}
                         className="inline-block origin-center rounded px-2 py-1 text-xs text-slate-700 transition-[transform,color,background-color] duration-150 ease-out hover:scale-[1.06] hover:bg-slate-100 hover:text-brand-teal"
                         onClick={() => setShopOpen(false)}
                       >

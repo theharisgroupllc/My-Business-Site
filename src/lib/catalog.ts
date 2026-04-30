@@ -131,10 +131,13 @@ export function productFromAdminRow(row: {
   description?: string | null;
   image_url?: string | null;
   gallery_json?: string | null;
+  rating?: number | string | null;
 }): Product {
   const id = String(row.id);
   const slug = String(row.slug ?? id);
   const price = typeof row.price === "number" ? row.price : Number(row.price);
+  const ratingRaw = row.rating == null ? 4.5 : typeof row.rating === "number" ? row.rating : Number(row.rating);
+  const rating = Number.isFinite(ratingRaw) ? Math.min(5, Math.max(1, ratingRaw)) : 4.5;
   const inventory = row.inventory == null ? 0 : typeof row.inventory === "number" ? row.inventory : Number(row.inventory);
   const description =
     row.description?.trim() ||
@@ -149,7 +152,7 @@ export function productFromAdminRow(row: {
     categoryId: row.category_id,
     name: row.name,
     price: Number.isFinite(price) ? price : 0,
-    rating: 4.5,
+    rating,
     inStock: inventory > 0,
     description,
     specifications: [

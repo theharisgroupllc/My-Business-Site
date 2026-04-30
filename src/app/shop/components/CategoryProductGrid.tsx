@@ -1,60 +1,146 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Product, categories as allCategories, products as allProducts } from "@/lib/catalog";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Product, categories as allCategories, productFromAdminRow, products as allProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
-import { LiveProductGrid } from "@/components/LiveProductGrid";
 import { CategoryFilters } from "./CategoryFilters";
+import type { PricePreset } from "./priceFilterUtils";
+import { appendPriceSearchParams, appendRatingSearchParams, productPassesPriceFilter } from "./priceFilterUtils";
+
+function normalizeCategorySlug(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+}
 
 type CategoryProductGridProps = {
-  products: Product[];
-  categoryId: string;
+  products?: Product[];
+  /** Current `/shop/[category]/` slug from the page URL; empty on shop index. Keeps filter + hero in sync with navigation. */
+  categoryId?: string;
 };
 
-export function CategoryProductGrid({ products, categoryId }: CategoryProductGridProps) {
-  const [selectedCategory, setSelectedCategory] = useState(categoryId);
-  const [selectedPrice, setSelectedPrice] = useState("all");
+type ProductsResponse = {
+  products?: Array<Record<string, unknown>>;
+};
+
+export function CategoryProductGrid({ products: _products, categoryId: pageCategoryProp }: CategoryProductGridProps) {
+  const router = useRouter();
+  const pageCategorySlug = pageCategoryProp ? normalizeCategorySlug(pageCategoryProp) : "";
+
+  const [selectedCategory, setSelectedCategory] = useState(() => (pageCategorySlug ? pageCategorySlug : "all"));
+  const [pricePreset, setPricePreset] = useState<PricePreset>("all");
+  const [priceMinInput, setPriceMinInput] = useState("");
+  const [priceMaxInput, setPriceMaxInput] = useState("");
   const [selectedRating, setSelectedRating] = useState("0");
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
 
-  const categoryScopedProducts = selectedCategory === categoryId ? products : allProducts.filter((item) => item.categoryId === selectedCategory);
+  useEffect(() => {
+    setSelectedCategory(pageCategorySlug ? pageCategorySlug : "all");
+  }, [pageCategorySlug]);
 
-  const minPrice = Math.floor(Math.min(...categoryScopedProducts.map((item) => item.price)));
-  const maxPrice = Math.ceil(Math.max(...categoryScopedProducts.map((item) => item.price)));
-  const midPrice = (minPrice + maxPrice) / 2;
+  const onCategoryChange = useCallback(
+    (value: string) => {
+      if (value === "all") {
+        router.push("/shop/");
+        return;
+      }
+      router.push(`/shop/${value}/`);
+    },
+    [router],
+  );
+
+  const fetchLiveProducts = useCallback(() => {
+    const params = new URLSearchParams();
+    if (selectedCategory !== "all") params.set("category", selectedCategory);
+    appendPriceSearchParams(params, pricePreset, priceMinInput, priceMaxInput);
+    appendRatingSearchParams(params, selectedRating);
+    const qs = params.toString();
+    const url = qs ? `/api/products?${qs}` : "/api/products";
+    fetch(url)
+      .then(async (response) => (response.ok ? ((await response.json()) as ProductsResponse) : { products: [] }))
+      .then((data) => {
+        const rows = data.products ?? [];
+        setLiveProducts(
+          rows.map((row) =>
+            productFromAdminRow({
+              id: String(row.id),
+              slug: row.slug != null ? String(row.slug) : undefined,
+              name: String(row.name ?? "Product"),
+              category_id: String(row.category_id ?? row.categoryId ?? ""),
+              price: row.price as number | string,
+              inventory: row.inventory as number | string | undefined,
+              description: row.description != null ? String(row.description) : undefined,
+              image_url: row.image_url != null ? String(row.image_url) : undefined,
+              gallery_json: row.gallery_json != null ? String(row.gallery_json) : undefined,
+              rating: row.rating as number | string | undefined,
+            }),
+          ),
+        );
+      })
+      .catch(() => setLiveProducts([]));
+  }, [selectedCategory, pricePreset, priceMinInput, priceMaxInput, selectedRating]);
+
+  useEffect(() => {
+    fetchLiveProducts();
+  }, [fetchLiveProducts]);
+
+  const allCombinedProducts = useMemo(() => {
+    const merged = [...liveProducts];
+    const liveIds = new Set(liveProducts.map((lp) => lp.id));
+    for (const sp of allProducts) {
+      if (!liveIds.has(sp.id)) merged.push(sp);
+    }
+    return merged;
+  }, [liveProducts]);
+
+  const categoryScopedProducts = useMemo(
+    () => (selectedCategory === "all" ? allCombinedProducts : allCombinedProducts.filter((item) => item.categoryId === selectedCategory)),
+    [selectedCategory, allCombinedProducts],
+  );
 
   const filteredProducts = useMemo(() => {
     return categoryScopedProducts.filter((item) => {
-      const passesRating = item.rating >= Number(selectedRating);
-      const passesPrice =
-        selectedPrice === "all" ||
-        (selectedPrice === "budget" && item.price <= midPrice) ||
-        (selectedPrice === "premium" && item.price >= midPrice);
+      const minRating = Number(selectedRating);
+      const passesRating = !Number.isFinite(minRating) || minRating <= 0 ? true : item.rating >= minRating;
+      const passesPrice = productPassesPriceFilter(item.price, pricePreset, priceMinInput, priceMaxInput);
       return passesRating && passesPrice;
     });
-  }, [categoryScopedProducts, selectedPrice, selectedRating, midPrice]);
+  }, [categoryScopedProducts, selectedRating, pricePreset, priceMinInput, priceMaxInput]);
+
+  const handleApplyCustomPriceRange = () => {
+    setPricePreset("custom");
+  };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-      <CategoryFilters
-        selectedCategory={selectedCategory}
-        categories={allCategories}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        selectedPrice={selectedPrice}
-        selectedRating={selectedRating}
-        onCategoryChange={setSelectedCategory}
-        onPriceChange={setSelectedPrice}
-        onRatingChange={setSelectedRating}
-      />
+    <div className="flex flex-col gap-6">
+      <div className="w-full">
+        <CategoryFilters
+          selectedCategory={selectedCategory}
+          categories={allCategories}
+          selectedRating={selectedRating}
+          pricePreset={pricePreset}
+          priceMinInput={priceMinInput}
+          priceMaxInput={priceMaxInput}
+          onCategoryChange={onCategoryChange}
+          onPricePresetChange={setPricePreset}
+          onPriceMinInputChange={setPriceMinInput}
+          onPriceMaxInputChange={setPriceMaxInput}
+          onApplyCustomPriceRange={handleApplyCustomPriceRange}
+          onRatingChange={setSelectedRating}
+        />
+      </div>
 
-      <div>
+      <div className="min-w-0 w-full">
         <p className="mb-4 text-sm text-slate-600">{filteredProducts.length} products found</p>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        <LiveProductGrid categoryId={selectedCategory} />
       </div>
     </div>
   );

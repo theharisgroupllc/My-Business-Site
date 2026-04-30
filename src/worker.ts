@@ -346,24 +346,64 @@ async function handleHomeBestSellers(env: Env) {
   return json({ productIds: ids, products: list, database: true });
 }
 
+function parsePriceQueryParam(raw: string | null): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 1_000_000_000) return null;
+  return n;
+}
+
+function parseMinRatingParam(raw: string | null): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 5) return null;
+  return n;
+}
+
 async function handleProducts(request: Request, env: Env) {
   if (!env.DB) return json({ products: [], database: false });
   const url = new URL(request.url);
   const categoryFilter = sanitizeText(url.searchParams.get("category"), 120);
-  if (categoryFilter) {
-    const { results } = await env.DB
-      .prepare(
-        "SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE status = 'active' AND category_id = ? ORDER BY updated_at DESC LIMIT 300",
-      )
-      .bind(categoryFilter)
-      .all();
-    return json({ products: results ?? [], database: true });
+  let minPrice = parsePriceQueryParam(url.searchParams.get("minPrice"));
+  let maxPrice = parsePriceQueryParam(url.searchParams.get("maxPrice"));
+  const maxExclusive = parsePriceQueryParam(url.searchParams.get("maxExclusive"));
+  const minExclusive = parsePriceQueryParam(url.searchParams.get("minExclusive"));
+  const minRating = parseMinRatingParam(url.searchParams.get("minRating"));
+  if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+    const t = minPrice;
+    minPrice = maxPrice;
+    maxPrice = t;
   }
-  const { results } = await env.DB
-    .prepare(
-      "SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json FROM products_admin WHERE status = 'active' ORDER BY updated_at DESC LIMIT 300",
-    )
-    .all();
+
+  const conditions = ["status = 'active'"];
+  const binds: unknown[] = [];
+  if (categoryFilter) {
+    conditions.push("category_id = ?");
+    binds.push(categoryFilter);
+  }
+  if (minExclusive != null) {
+    conditions.push("price > ?");
+    binds.push(minExclusive);
+  } else if (minPrice != null) {
+    conditions.push("price >= ?");
+    binds.push(minPrice);
+  }
+  if (maxExclusive != null) {
+    conditions.push("price < ?");
+    binds.push(maxExclusive);
+  } else if (maxPrice != null) {
+    conditions.push("price <= ?");
+    binds.push(maxPrice);
+  }
+  if (minRating != null && minRating > 0) {
+    conditions.push("rating >= ?");
+    binds.push(minRating);
+  }
+
+  const whereSql = conditions.join(" AND ");
+  const sql = `SELECT id, slug, name, category_id, price, inventory, description, image_url, gallery_json, rating FROM products_admin WHERE ${whereSql} ORDER BY updated_at DESC LIMIT 300`;
+  const stmt = env.DB.prepare(sql);
+  const { results } = binds.length > 0 ? await stmt.bind(...binds).all() : await stmt.all();
   return json({ products: results ?? [], database: true });
 }
 
@@ -488,11 +528,13 @@ async function handleAdmin(request: Request, env: Env) {
       if (!name || !categoryId || price <= 0) {
         return json({ error: "Product name, category, and price are required." }, { status: 400 });
       }
+      const ratingRaw = toNumber(body.rating);
+      const rating = Number.isFinite(ratingRaw) ? Math.min(5, Math.max(1, ratingRaw)) : 4.5;
       await db
         .prepare(
-          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, description, image_url, gallery_json, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, description = excluded.description, image_url = excluded.image_url, gallery_json = excluded.gallery_json, updated_at = datetime('now')",
+          "INSERT INTO products_admin (id, slug, name, category_id, price, inventory, description, image_url, gallery_json, rating, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now')) ON CONFLICT(id) DO UPDATE SET name = excluded.name, category_id = excluded.category_id, price = excluded.price, inventory = excluded.inventory, description = excluded.description, image_url = excluded.image_url, gallery_json = excluded.gallery_json, rating = excluded.rating, updated_at = datetime('now')",
         )
-        .bind(id, id, name, categoryId, price, inventory, description || null, imageUrl || null, galleryJson)
+        .bind(id, id, name, categoryId, price, inventory, description || null, imageUrl || null, galleryJson, rating)
         .run();
       return json({ id, message: "Product saved." }, { status: 201 });
     }

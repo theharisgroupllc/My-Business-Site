@@ -103,6 +103,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               description: row.description != null ? String(row.description) : undefined,
               image_url: row.image_url != null ? String(row.image_url) : undefined,
               gallery_json: row.gallery_json != null ? String(row.gallery_json) : undefined,
+              rating: row.rating as number | string | undefined,
             }),
           ),
         );
