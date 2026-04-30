@@ -1,14 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Product, categories as allCategories, productFromAdminRow, products as allProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilters } from "./CategoryFilters";
 import type { PricePreset } from "./priceFilterUtils";
 import { appendPriceSearchParams, appendRatingSearchParams, productPassesPriceFilter } from "./priceFilterUtils";
 
+function normalizeCategorySlug(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+}
+
 type CategoryProductGridProps = {
   products?: Product[];
+  /** Current `/shop/[category]/` slug from the page URL; empty on shop index. Keeps filter + hero in sync with navigation. */
   categoryId?: string;
 };
 
@@ -16,13 +27,31 @@ type ProductsResponse = {
   products?: Array<Record<string, unknown>>;
 };
 
-export function CategoryProductGrid({ products: _products, categoryId: _categoryId }: CategoryProductGridProps) {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+export function CategoryProductGrid({ products: _products, categoryId: pageCategoryProp }: CategoryProductGridProps) {
+  const router = useRouter();
+  const pageCategorySlug = pageCategoryProp ? normalizeCategorySlug(pageCategoryProp) : "";
+
+  const [selectedCategory, setSelectedCategory] = useState(() => (pageCategorySlug ? pageCategorySlug : "all"));
   const [pricePreset, setPricePreset] = useState<PricePreset>("all");
   const [priceMinInput, setPriceMinInput] = useState("");
   const [priceMaxInput, setPriceMaxInput] = useState("");
   const [selectedRating, setSelectedRating] = useState("0");
   const [liveProducts, setLiveProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setSelectedCategory(pageCategorySlug ? pageCategorySlug : "all");
+  }, [pageCategorySlug]);
+
+  const onCategoryChange = useCallback(
+    (value: string) => {
+      if (value === "all") {
+        router.push("/shop/");
+        return;
+      }
+      router.push(`/shop/${value}/`);
+    },
+    [router],
+  );
 
   const fetchLiveProducts = useCallback(() => {
     const params = new URLSearchParams();
@@ -96,7 +125,7 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
           pricePreset={pricePreset}
           priceMinInput={priceMinInput}
           priceMaxInput={priceMaxInput}
-          onCategoryChange={setSelectedCategory}
+          onCategoryChange={onCategoryChange}
           onPricePresetChange={setPricePreset}
           onPriceMinInputChange={setPriceMinInput}
           onPriceMaxInputChange={setPriceMaxInput}
