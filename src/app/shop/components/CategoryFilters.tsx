@@ -240,7 +240,7 @@ function PriceRangeExtras({
   if (!showCustomFields) {
     return (
       <p className="rounded-md border border-slate-100/80 bg-slate-50/40 px-3 py-2 text-center text-[11px] font-light italic leading-relaxed tracking-normal text-slate-500 sm:text-left sm:text-xs">
-        Choose &quot;Custom range…&quot; in the list above to filter by your price range.
+        Choose &quot;Custom range…&quot; to filter by your price range.
       </p>
     );
   }
