@@ -87,23 +87,25 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-      <CategoryFilters
-        selectedCategory={selectedCategory}
-        categories={allCategories}
-        selectedRating={selectedRating}
-        pricePreset={pricePreset}
-        priceMinInput={priceMinInput}
-        priceMaxInput={priceMaxInput}
-        onCategoryChange={setSelectedCategory}
-        onPricePresetChange={setPricePreset}
-        onPriceMinInputChange={setPriceMinInput}
-        onPriceMaxInputChange={setPriceMaxInput}
-        onApplyCustomPriceRange={handleApplyCustomPriceRange}
-        onRatingChange={setSelectedRating}
-      />
+    <div className="flex flex-col gap-6">
+      <div className="mx-auto w-full max-w-2xl lg:max-w-3xl">
+        <CategoryFilters
+          selectedCategory={selectedCategory}
+          categories={allCategories}
+          selectedRating={selectedRating}
+          pricePreset={pricePreset}
+          priceMinInput={priceMinInput}
+          priceMaxInput={priceMaxInput}
+          onCategoryChange={setSelectedCategory}
+          onPricePresetChange={setPricePreset}
+          onPriceMinInputChange={setPriceMinInput}
+          onPriceMaxInputChange={setPriceMaxInput}
+          onApplyCustomPriceRange={handleApplyCustomPriceRange}
+          onRatingChange={setSelectedRating}
+        />
+      </div>
 
-      <div>
+      <div className="min-w-0 w-full">
         <p className="mb-4 text-sm text-slate-600">{filteredProducts.length} products found</p>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
           {filteredProducts.map((product) => (
