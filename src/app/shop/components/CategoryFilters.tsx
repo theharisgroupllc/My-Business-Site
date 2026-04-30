@@ -227,9 +227,8 @@ function PriceRangeSection({
         scrollHintText="Swipe down for more"
       />
       {!showCustomFields ? (
-        <p className="rounded-md border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs leading-relaxed text-slate-600">
-          <span className="font-medium text-slate-700">Custom price filter:</span> select{" "}
-          <span className="font-medium text-brand-navy">Custom range</span> in the list above, then enter your minimum and maximum to see only products in that range.
+        <p className="rounded-md border border-slate-100 bg-slate-50/80 px-3 py-2 text-center text-[11px] font-medium leading-snug tracking-tight text-slate-700 sm:text-left sm:text-xs">
+          Choose Custom Range to Filter by Your Price Range
         </p>
       ) : (
         <>
