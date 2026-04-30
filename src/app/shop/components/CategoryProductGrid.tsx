@@ -88,7 +88,7 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="mx-auto w-full max-w-2xl lg:max-w-3xl">
+      <div className="w-full">
         <CategoryFilters
           selectedCategory={selectedCategory}
           categories={allCategories}
