@@ -107,7 +107,7 @@ export function CategoryProductGrid({ products: _products, categoryId: _category
 
       <div className="min-w-0 w-full">
         <p className="mb-4 text-sm text-slate-600">{filteredProducts.length} products found</p>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
