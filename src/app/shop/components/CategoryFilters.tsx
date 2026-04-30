@@ -165,29 +165,21 @@ function DesktopDropdown({
   );
 }
 
-function PriceRangeSection({
+function PriceBandDropdown({
   pricePreset,
-  priceMinInput,
-  priceMaxInput,
   openId,
   setOpenId,
   onPricePresetChange,
   onPriceMinInputChange,
   onPriceMaxInputChange,
-  onApplyCustomPriceRange,
 }: {
   pricePreset: PricePreset;
-  priceMinInput: string;
-  priceMaxInput: string;
   openId: string | null;
   setOpenId: (id: string | null) => void;
   onPricePresetChange: (preset: PricePreset) => void;
   onPriceMinInputChange: (value: string) => void;
   onPriceMaxInputChange: (value: string) => void;
-  onApplyCustomPriceRange: () => void;
 }) {
-  const showCustomFields = pricePreset === "custom";
-
   const priceBandOptions = useMemo<DropdownOption[]>(
     () => [
       { value: "all", label: "All Prices" },
@@ -214,65 +206,86 @@ function PriceRangeSection({
   };
 
   return (
-    <div className="space-y-2">
-      <DesktopDropdown
-        id="price-band-filter"
-        label="Price range"
-        value={dropdownValue}
-        options={priceBandOptions}
-        onChange={onPriceBandChange}
-        openId={openId}
-        setOpenId={setOpenId}
-        showScrollIndicator
-        scrollHintText="Swipe down for more"
-      />
-      {!showCustomFields ? (
-        <p className="rounded-md border border-slate-100/80 bg-slate-50/40 px-3 py-2 text-center text-[11px] font-light italic leading-relaxed tracking-normal text-slate-500 sm:text-left sm:text-xs">
-          Choose &quot;Custom range…&quot; in the list above to filter by your price range.
-        </p>
-      ) : (
-        <>
-          <p className="text-xs leading-relaxed text-slate-600">
-            Enter your minimum and maximum price below, then tap <span className="font-medium text-slate-800">Apply custom range</span> to filter results.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label htmlFor="filter-price-min" className="sr-only">
-                Minimum price
-              </label>
-              <input
-                id="filter-price-min"
-                inputMode="decimal"
-                placeholder="Min $"
-                value={priceMinInput}
-                onChange={(e) => onPriceMinInputChange(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-              />
-            </div>
-            <div>
-              <label htmlFor="filter-price-max" className="sr-only">
-                Maximum price
-              </label>
-              <input
-                id="filter-price-max"
-                inputMode="decimal"
-                placeholder="Max $"
-                value={priceMaxInput}
-                onChange={(e) => onPriceMaxInputChange(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-              />
-            </div>
-          </div>
-          <button
-            type="button"
-            className="w-full rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate md:py-2"
-            onClick={onApplyCustomPriceRange}
-          >
-            Apply custom range
-          </button>
-        </>
-      )}
-    </div>
+    <DesktopDropdown
+      id="price-band-filter"
+      label="Price range"
+      value={dropdownValue}
+      options={priceBandOptions}
+      onChange={onPriceBandChange}
+      openId={openId}
+      setOpenId={setOpenId}
+      showScrollIndicator
+      scrollHintText="Swipe down for more"
+    />
+  );
+}
+
+function PriceRangeExtras({
+  pricePreset,
+  priceMinInput,
+  priceMaxInput,
+  onPriceMinInputChange,
+  onPriceMaxInputChange,
+  onApplyCustomPriceRange,
+}: {
+  pricePreset: PricePreset;
+  priceMinInput: string;
+  priceMaxInput: string;
+  onPriceMinInputChange: (value: string) => void;
+  onPriceMaxInputChange: (value: string) => void;
+  onApplyCustomPriceRange: () => void;
+}) {
+  const showCustomFields = pricePreset === "custom";
+
+  if (!showCustomFields) {
+    return (
+      <p className="rounded-md border border-slate-100/80 bg-slate-50/40 px-3 py-2 text-center text-[11px] font-light italic leading-relaxed tracking-normal text-slate-500 sm:text-left sm:text-xs">
+        Choose &quot;Custom range…&quot; in the list above to filter by your price range.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <p className="text-xs leading-relaxed text-slate-600">
+        Enter your minimum and maximum price below, then tap <span className="font-medium text-slate-800">Apply custom range</span> to filter results.
+      </p>
+      <div className="mt-2 grid max-w-md grid-cols-2 gap-2 sm:max-w-lg">
+        <div>
+          <label htmlFor="filter-price-min" className="sr-only">
+            Minimum price
+          </label>
+          <input
+            id="filter-price-min"
+            inputMode="decimal"
+            placeholder="Min $"
+            value={priceMinInput}
+            onChange={(e) => onPriceMinInputChange(e.target.value)}
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+        <div>
+          <label htmlFor="filter-price-max" className="sr-only">
+            Maximum price
+          </label>
+          <input
+            id="filter-price-max"
+            inputMode="decimal"
+            placeholder="Max $"
+            value={priceMaxInput}
+            onChange={(e) => onPriceMaxInputChange(e.target.value)}
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+      </div>
+      <button
+        type="button"
+        className="mt-2 max-w-md rounded-md bg-brand-navy px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-slate sm:max-w-lg md:py-2"
+        onClick={onApplyCustomPriceRange}
+      >
+        Apply custom range
+      </button>
+    </>
   );
 }
 
@@ -339,43 +352,51 @@ export function CategoryFilters({
     <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-navy">Filters</h3>
 
-      <div className="mt-4 space-y-2">
-        <DesktopDropdown
-          id="category-filter"
-          label="Category"
-          value={selectedCategory}
-          options={categoryOptions}
-          onChange={onCategoryChange}
-          openId={openId}
-          setOpenId={setOpenId}
-          showScrollIndicator
-          scrollHintText="Swipe down for more"
-        />
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-3 lg:gap-4">
+        <div className="min-w-0">
+          <DesktopDropdown
+            id="category-filter"
+            label="Category"
+            value={selectedCategory}
+            options={categoryOptions}
+            onChange={onCategoryChange}
+            openId={openId}
+            setOpenId={setOpenId}
+            showScrollIndicator
+            scrollHintText="Swipe down for more"
+          />
+        </div>
+        <div className="min-w-0">
+          <PriceBandDropdown
+            pricePreset={pricePreset}
+            openId={openId}
+            setOpenId={setOpenId}
+            onPricePresetChange={onPricePresetChange}
+            onPriceMinInputChange={onPriceMinInputChange}
+            onPriceMaxInputChange={onPriceMaxInputChange}
+          />
+        </div>
+        <div className="min-w-0">
+          <DesktopDropdown
+            id="rating-filter"
+            label="Rating"
+            value={selectedRating}
+            options={ratingOptions}
+            onChange={onRatingChange}
+            openId={openId}
+            setOpenId={setOpenId}
+          />
+        </div>
       </div>
 
       <div className="mt-4 border-t border-slate-100 pt-4">
-        <PriceRangeSection
+        <PriceRangeExtras
           pricePreset={pricePreset}
           priceMinInput={priceMinInput}
           priceMaxInput={priceMaxInput}
-          openId={openId}
-          setOpenId={setOpenId}
-          onPricePresetChange={onPricePresetChange}
           onPriceMinInputChange={onPriceMinInputChange}
           onPriceMaxInputChange={onPriceMaxInputChange}
           onApplyCustomPriceRange={onApplyCustomPriceRange}
-        />
-      </div>
-
-      <div className="mt-4 border-t border-slate-100 pt-4">
-        <DesktopDropdown
-          id="rating-filter"
-          label="Rating"
-          value={selectedRating}
-          options={ratingOptions}
-          onChange={onRatingChange}
-          openId={openId}
-          setOpenId={setOpenId}
         />
       </div>
     </aside>
